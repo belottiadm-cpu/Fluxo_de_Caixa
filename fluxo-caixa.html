@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Fluxo de Caixa — Palladium</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<style>
+:root{--brand:#1B3A5C;--recv:#1a7a4a;--pag:#c0392b;--warn:#d97706;--today-b:#f59e0b;}
+*{box-sizing:border-box;}
+body{background:#f0f4f8;font-family:'Segoe UI',system-ui,sans-serif;font-size:.875rem;color:#1e293b;margin:0;}
+
+/* ── import screen ── */
+#import-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1.5rem;}
+.drop-zone{border:2.5px dashed #94a3b8;border-radius:16px;padding:3rem 4rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+.drop-zone:hover,.drop-zone.over{border-color:var(--brand);background:#e8f0fb;}
+.drop-zone i{font-size:3rem;color:#94a3b8;display:block;margin-bottom:.75rem;}
+.drop-zone p{margin:0;color:#475569;font-size:.95rem;}
+.btn-import{background:var(--brand);color:#fff;border:none;border-radius:8px;padding:.6rem 1.5rem;font-size:.9rem;font-weight:600;cursor:pointer;}
+.btn-import:hover{background:#2C5F8A;}
+#file-input{display:none;}
+
+/* ── app ── */
+#app{display:none;}
+.top-bar{background:var(--brand);padding:.55rem 1.5rem;display:flex;align-items:center;gap:.75rem;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.brand{color:#fff;font-weight:700;font-size:1.1rem;}
+.sub{color:#94a3b8;font-size:.8rem;}
+.ms-a{margin-left:auto;}
+.btn-rf{background:transparent;border:1px solid rgba(255,255,255,.3);color:#cbd5e1;border-radius:6px;padding:.28rem .7rem;font-size:.77rem;cursor:pointer;}
+.btn-rf:hover{background:rgba(255,255,255,.1);color:#fff;}
+.info-chip{font-size:.72rem;color:#94a3b8;background:rgba(255,255,255,.08);border-radius:4px;padding:.15rem .5rem;}
+
+.filter-bar{background:#fff;padding:.5rem 1.5rem;display:flex;align-items:center;gap:1.25rem;border-bottom:1px solid #e2e8f0;flex-wrap:wrap;}
+.filter-bar label{font-weight:600;font-size:.77rem;color:#64748b;white-space:nowrap;}
+.filter-bar select,.filter-bar input[type=text]{font-size:.82rem;border-radius:6px;border:1px solid #cbd5e1;padding:.28rem .55rem;}
+.filter-bar select{min-width:150px;}
+.filter-bar input[type=text]{min-width:200px;}
+
+.tab-bar{background:#fff;padding:0 1.5rem;border-bottom:2px solid #e2e8f0;display:flex;}
+.tab-item{padding:.6rem 1.15rem;cursor:pointer;font-weight:600;font-size:.82rem;color:#64748b;border-bottom:3px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:.35rem;user-select:none;transition:color .15s,border-color .15s;}
+.tab-item:hover{color:var(--brand);}.tab-item.active{color:var(--brand);border-bottom-color:var(--brand);}
+
+.content{padding:1.1rem 1.5rem;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.85rem;margin-bottom:1rem;}
+.kpi-card{background:#fff;border-radius:10px;padding:.95rem 1rem;box-shadow:0 1px 6px rgba(0,0,0,.07);border-left:4px solid transparent;position:relative;overflow:hidden;}
+.kpi-card.recv{border-left-color:var(--recv);}.kpi-card.pag{border-left-color:var(--pag);}.kpi-card.warn{border-left-color:#f59e0b;}.kpi-card.info{border-left-color:#3b82f6;}
+.kpi-label{font-size:.71rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.4px;}
+.kpi-value{font-size:1.3rem;font-weight:700;margin-top:.15rem;line-height:1.1;}
+.kpi-sub{font-size:.71rem;color:#94a3b8;margin-top:.25rem;}
+.kpi-icon{position:absolute;right:.9rem;top:.75rem;font-size:1.9rem;opacity:.08;}
+.tv-recv{color:var(--recv);}.tv-pag{color:var(--pag);}.tv-warn{color:var(--warn);}.tv-info{color:#2563eb;}
+
+.chart-row{display:grid;gap:.85rem;margin-bottom:1rem;}
+.chart-row.r1{grid-template-columns:2fr 1fr;}.chart-row.r2{grid-template-columns:1fr 1fr;}
+.chart-card{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.chart-card .head{padding:.6rem 1rem;font-weight:700;font-size:.79rem;border-bottom:1px solid #f1f5f9;background:#f8fafc;}
+.chart-card .body{padding:.7rem 1rem;}
+
+.flow-wrap{overflow:auto;max-height:calc(100vh - 245px);border:1px solid #cbd5e1;border-radius:8px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.flow-table{border-collapse:separate;border-spacing:0;font-size:.75rem;min-width:max-content;width:100%;}
+.flow-table th,.flow-table td{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:3px 7px;white-space:nowrap;vertical-align:middle;}
+.flow-table thead tr:first-child th{position:sticky;top:0;z-index:2;background:var(--brand);color:#fff;font-weight:600;text-align:center;font-size:.71rem;border-color:#2C5F8A;}
+.col-conta{position:sticky;left:0;z-index:1;min-width:210px;max-width:210px;text-align:left!important;background:#fff;font-weight:500;}
+thead .col-conta{z-index:4!important;background:var(--brand)!important;}
+.col-tipo{position:sticky;left:210px;z-index:1;min-width:52px;text-align:center!important;background:#fff;border-right:2px solid #cbd5e1!important;}
+thead .col-tipo{z-index:4!important;background:var(--brand)!important;}
+.col-total{position:sticky;right:0;z-index:1;background:#f8fafc;font-weight:700;border-left:2px solid #cbd5e1!important;}
+thead .col-total{z-index:4!important;background:#0f2942!important;}
+.col-today{background:#fff8e1!important;}.flow-table thead th.col-today{background:#b45309!important;}
+.sec-recv td{background:#e0f0e8;font-weight:700;font-size:.77rem;color:var(--recv);border-top:2px solid #6ab58f;}
+.sec-recv .col-conta,.sec-recv .col-tipo,.sec-recv .col-total{background:#e0f0e8;}
+.sec-pag td{background:#fce8e6;font-weight:700;font-size:.77rem;color:var(--pag);border-top:2px solid #e8a09a;}
+.sec-pag .col-conta,.sec-pag .col-tipo,.sec-pag .col-total{background:#fce8e6;}
+.row-real .col-conta,.row-real .col-tipo,.row-real .col-total{background:#fafafa;}
+.row-prev td{opacity:.85;}.row-prev .col-conta{color:#64748b;font-style:italic;background:#fafafa;}
+.row-prev .col-tipo,.row-prev .col-total{background:#fafafa;}
+.row-subtot td{background:#f0f4f8;font-weight:700;font-size:.75rem;}
+.row-subtot .col-conta,.row-subtot .col-tipo{background:#f0f4f8;}.row-subtot .col-total{background:#e8edf3;}
+.row-saldo td{font-weight:700;font-size:.77rem;}
+.vp{color:#1a7a4a;}.vn{color:#c0392b;}.vz{color:#94a3b8;}
+.b-real{background:#dcfce7;color:#166534;font-size:.61rem;border-radius:3px;padding:1px 4px;font-weight:600;}
+.b-prev{background:#f1f5f9;color:#475569;font-size:.61rem;border-radius:3px;padding:1px 4px;font-weight:600;}
+.toggle-bar{display:flex;gap:.5rem;align-items:center;margin-bottom:.55rem;}
+.tbtn{padding:.28rem .7rem;border-radius:6px;border:1.5px solid #cbd5e1;background:#fff;font-size:.77rem;font-weight:600;cursor:pointer;color:#475569;}
+.tbtn.on.recv{background:var(--recv);border-color:var(--recv);color:#fff;}
+.tbtn.on.prev{background:#64748b;border-color:#64748b;color:#fff;}
+.legend{display:flex;gap:.85rem;font-size:.72rem;color:#64748b;margin-left:auto;align-items:center;}
+.leg-dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:3px;}
+
+.detail-header{display:flex;gap:.75rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center;}
+.stat-pill{background:#fff;border-radius:8px;padding:.5rem .9rem;box-shadow:0 1px 5px rgba(0,0,0,.07);font-size:.78rem;font-weight:600;}
+.stat-pill .lbl{font-size:.68rem;color:#64748b;font-weight:400;display:block;}
+.detail-wrap{overflow:auto;max-height:calc(100vh - 270px);border:1px solid #cbd5e1;border-radius:8px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.07);}
+.detail-table{border-collapse:collapse;width:100%;font-size:.78rem;}
+.detail-table th{position:sticky;top:0;background:var(--brand);color:#fff;padding:5px 10px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;border-right:1px solid #2C5F8A;}
+.detail-table th:hover{background:#2C5F8A;}
+.detail-table td{padding:4px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;}
+.detail-table tbody tr:hover td{background:#f8fafc;}
+.badge-at{background:#fee2e2;color:#991b1b;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.badge-ok{background:#dcfce7;color:#166534;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.badge-hj{background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.badge-lq{background:#e0f2fe;color:#0369a1;border-radius:4px;padding:1px 6px;font-size:.68rem;font-weight:600;}
+.loading{text-align:center;padding:3rem;color:#64748b;}
+@media(max-width:900px){.chart-row.r1,.chart-row.r2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ══ TELA DE IMPORTAÇÃO ══ -->
+<div id="import-screen">
+  <div style="text-align:center">
+    <i class="bi bi-cash-stack" style="font-size:3rem;color:var(--brand)"></i>
+    <h2 style="margin:.5rem 0 .25rem;color:var(--brand)">Fluxo de Caixa — Palladium</h2>
+    <p style="color:#64748b;margin:0">Importe a planilha para visualizar o relatório</p>
+  </div>
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <i class="bi bi-file-earmark-spreadsheet"></i>
+    <p><strong>Clique ou arraste</strong> o arquivo Excel aqui</p>
+    <p style="font-size:.8rem;color:#94a3b8;margin-top:.4rem">RELATORIO - FLUXO DE CAIXA.xlsx</p>
+  </div>
+  <button class="btn-import" onclick="document.getElementById('file-input').click()">
+    <i class="bi bi-upload"></i> Selecionar Arquivo
+  </button>
+  <input type="file" id="file-input" accept=".xlsx,.xls" onchange="onFileSelected(this)"/>
+</div>
+
+<!-- ══ APLICATIVO ══ -->
+<div id="app">
+  <div class="top-bar">
+    <i class="bi bi-cash-stack" style="color:#60a5fa;font-size:1.3rem"></i>
+    <span class="brand">Fluxo de Caixa</span>
+    <span class="sub">PALLADIUM</span>
+    <span class="info-chip ms-a" id="file-info"></span>
+    <button class="btn-rf" onclick="document.getElementById('file-input').click()">
+      <i class="bi bi-arrow-clockwise"></i> Trocar arquivo
+    </button>
+  </div>
+
+  <div class="filter-bar">
+    <div style="display:flex;align-items:center;gap:.45rem">
+      <label><i class="bi bi-funnel me-1"></i>Projeto</label>
+      <select id="filter-project" onchange="onFiltersChange()"><option value="all">Todos os Projetos</option></select>
+    </div>
+    <div style="display:flex;align-items:center;gap:.45rem">
+      <label><i class="bi bi-calendar3 me-1"></i>Mês (Diário)</label>
+      <select id="filter-month" onchange="onFiltersChange()"></select>
+    </div>
+    <div style="display:flex;align-items:center;gap:.45rem">
+      <label><i class="bi bi-calendar-range me-1"></i>Ano (Mensal)</label>
+      <select id="filter-year" onchange="onFiltersChange()"><option value="">Todos</option></select>
+    </div>
+    <div style="display:flex;align-items:center;gap:.45rem;display:none" id="search-wrap">
+      <label><i class="bi bi-search me-1"></i>Buscar</label>
+      <input type="text" id="filter-search" placeholder="Cliente, fornecedor, projeto…" oninput="onFiltersChange()"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:.45rem;display:none" id="status-wrap">
+      <label>Status</label>
+      <select id="filter-status" onchange="onFiltersChange()">
+        <option value="AB">Em Aberto (AB)</option>
+        <option value="all">Todos</option>
+        <option value="LQ">Liquidados</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('dashboard',this)"><i class="bi bi-grid-1x2-fill"></i> Dashboard</div>
+    <div class="tab-item" onclick="switchTab('daily',this)"><i class="bi bi-calendar3"></i> Fluxo Diário</div>
+    <div class="tab-item" onclick="switchTab('monthly',this)"><i class="bi bi-bar-chart-line"></i> Fluxo Mensal</div>
+    <div class="tab-item" onclick="switchTab('recv',this)"><i class="bi bi-arrow-down-circle"></i> A Receber</div>
+    <div class="tab-item" onclick="switchTab('pagar',this)"><i class="bi bi-arrow-up-circle"></i> A Pagar</div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card recv"><i class="bi bi-arrow-down-circle kpi-icon tv-recv"></i><div class="kpi-label">Recebido no Mês</div><div class="kpi-value tv-recv" id="k-recv-mes">—</div><div class="kpi-sub">Liquidados no mês atual</div></div>
+        <div class="kpi-card pag"><i class="bi bi-arrow-up-circle kpi-icon tv-pag"></i><div class="kpi-label">Pago no Mês</div><div class="kpi-value tv-pag" id="k-pay-mes">—</div><div class="kpi-sub">Liquidados no mês atual</div></div>
+        <div class="kpi-card info"><i class="bi bi-graph-up kpi-icon tv-info"></i><div class="kpi-label">Resultado do Mês</div><div class="kpi-value" id="k-result">—</div><div class="kpi-sub">Recebido − Pago</div></div>
+        <div class="kpi-card warn"><i class="bi bi-exclamation-triangle kpi-icon tv-warn"></i><div class="kpi-label">A Receber em Atraso</div><div class="kpi-value tv-warn" id="k-atrec">—</div><div class="kpi-sub">Vencidos, em aberto</div></div>
+        <div class="kpi-card pag"><i class="bi bi-clock-history kpi-icon tv-pag"></i><div class="kpi-label">A Pagar em Atraso</div><div class="kpi-value tv-pag" id="k-atpag">—</div><div class="kpi-sub">Vencidos, em aberto</div></div>
+        <div class="kpi-card recv"><i class="bi bi-calendar-check kpi-icon tv-recv"></i><div class="kpi-label">A Receber (Futuro)</div><div class="kpi-value tv-recv" id="k-frec">—</div><div class="kpi-sub">30d: <span id="k-30rec">—</span></div></div>
+        <div class="kpi-card pag"><i class="bi bi-calendar-x kpi-icon tv-pag"></i><div class="kpi-label">A Pagar (Futuro)</div><div class="kpi-value tv-pag" id="k-fpag">—</div><div class="kpi-sub">30d: <span id="k-30pag">—</span></div></div>
+        <div class="kpi-card info"><i class="bi bi-wallet2 kpi-icon tv-info"></i><div class="kpi-label">Saldo Líquido Futuro</div><div class="kpi-value" id="k-saldo">—</div><div class="kpi-sub">A Receber − A Pagar</div></div>
+      </div>
+      <div class="chart-row r1">
+        <div class="chart-card"><div class="head"><i class="bi bi-bar-chart me-1"></i>Receitas vs Despesas — Últimos 12 meses (Realizados)</div><div class="body"><canvas id="ch-monthly" height="110"></canvas></div></div>
+        <div class="chart-card"><div class="head"><i class="bi bi-pie-chart me-1"></i>A Receber vs A Pagar — Futuro</div><div class="body"><canvas id="ch-future" height="190"></canvas></div></div>
+      </div>
+      <div class="chart-row r2">
+        <div class="chart-card"><div class="head"><i class="bi bi-bar-chart-horizontal me-1"></i>Top 10 Contas de Despesa (Realizadas)</div><div class="body"><canvas id="ch-tp" height="230"></canvas></div></div>
+        <div class="chart-card"><div class="head"><i class="bi bi-bar-chart-horizontal me-1"></i>Top 10 Contas de Receita (Realizadas)</div><div class="body"><canvas id="ch-tr" height="230"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- FLUXO DIÁRIO -->
+    <div id="tab-daily" style="display:none">
+      <div class="toggle-bar">
+        <button class="tbtn on recv" id="btn-rd" onclick="tgl('real','d')"><i class="bi bi-check-circle"></i> Realizado</button>
+        <button class="tbtn on prev" id="btn-pd" onclick="tgl('prev','d')"><i class="bi bi-hourglass-split"></i> Previsto (AB)</button>
+        <div class="legend"><span><span class="leg-dot" style="background:var(--recv)"></span>Entradas</span><span><span class="leg-dot" style="background:var(--pag)"></span>Saídas</span><span><span class="leg-dot" style="background:var(--today-b)"></span>Hoje</span><span style="font-style:italic;opacity:.7">itálico=previsto</span></div>
+      </div>
+      <div class="flow-wrap" id="daily-wrap"><div class="loading">Selecione o mês…</div></div>
+    </div>
+
+    <!-- FLUXO MENSAL -->
+    <div id="tab-monthly" style="display:none">
+      <div class="toggle-bar">
+        <button class="tbtn on recv" id="btn-rm" onclick="tgl('real','m')"><i class="bi bi-check-circle"></i> Realizado</button>
+        <button class="tbtn on prev" id="btn-pm" onclick="tgl('prev','m')"><i class="bi bi-hourglass-split"></i> Previsto (AB)</button>
+        <div class="legend"><span><span class="leg-dot" style="background:var(--recv)"></span>Entradas</span><span><span class="leg-dot" style="background:var(--pag)"></span>Saídas</span></div>
+      </div>
+      <div class="flow-wrap" id="monthly-wrap"><div class="loading">Carregando…</div></div>
+    </div>
+
+    <!-- A RECEBER -->
+    <div id="tab-recv" style="display:none">
+      <div class="detail-header" id="recv-stats"></div>
+      <div class="detail-wrap">
+        <table class="detail-table">
+          <thead><tr>
+            <th onclick="sortDetail('recv',0)">Cliente ↕</th>
+            <th onclick="sortDetail('recv',1)">Conta Financeira ↕</th>
+            <th onclick="sortDetail('recv',2)">Projeto ↕</th>
+            <th onclick="sortDetail('recv',3)">Vencimento ↕</th>
+            <th onclick="sortDetail('recv',4)">Status</th>
+            <th onclick="sortDetail('recv',5)" style="text-align:right">Valor ↕</th>
+          </tr></thead>
+          <tbody id="recv-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- A PAGAR -->
+    <div id="tab-pagar" style="display:none">
+      <div class="detail-header" id="pag-stats"></div>
+      <div class="detail-wrap">
+        <table class="detail-table">
+          <thead><tr>
+            <th onclick="sortDetail('pag',0)">Fornecedor ↕</th>
+            <th onclick="sortDetail('pag',1)">Conta Financeira ↕</th>
+            <th onclick="sortDetail('pag',2)">Projeto ↕</th>
+            <th onclick="sortDetail('pag',3)">Vencimento ↕</th>
+            <th onclick="sortDetail('pag',4)">Status</th>
+            <th onclick="sortDetail('pag',5)" style="text-align:right">Valor ↕</th>
+          </tr></thead>
+          <tbody id="pag-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════
+   ESTADO GLOBAL
+══════════════════════════════════════════════ */
+let DATA = [];
+let currentTab = 'dashboard';
+const charts = {};
+const layerState = { real: true, prev: true };
+const sortState = { recv: { col: 3, asc: true }, pag: { col: 3, asc: true } };
+
+/* ══════════════════════════════════════════════
+   IMPORTAÇÃO DO ARQUIVO
+══════════════════════════════════════════════ */
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); loadFile(e.dataTransfer.files[0]); });
+
+function onFileSelected(inp) { if (inp.files[0]) loadFile(inp.files[0]); inp.value = ''; }
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      DATA = parseXlsx(e.target.result);
+      document.getElementById('import-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('file-info').textContent =
+        `${file.name}  •  ${DATA.length} registros  •  ${new Date().toLocaleString('pt-BR')}`;
+      buildFilters();
+      loadDashboard();
+    } catch(err) {
+      alert('Erro ao ler o arquivo:\n' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseXlsx(buffer) {
+  const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+  const ws = wb.Sheets['Dados'];
+  if (!ws) throw new Error('Aba "Dados" não encontrada na planilha.');
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, cellDates: true });
+
+  const fmtDate = d => {
+    if (!d) return null;
+    if (d instanceof Date) return d.toISOString().slice(0, 10);
+    if (typeof d === 'number') {
+      const x = XLSX.SSF.parse_date_code(d);
+      return `${x.y}-${String(x.m).padStart(2,'0')}-${String(x.d).padStart(2,'0')}`;
+    }
+    const dt = new Date(d);
+    return isNaN(dt) ? null : dt.toISOString().slice(0, 10);
+  };
+
+  const records = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || !row[1]) continue;
+    const orig = String(row[1] || '').trim();
+    const o = orig === 'Contas a Receber' ? 'R' : (orig === 'Contas a Pagar' ? 'P' : 'T');
+    const sit = String(row[9] || '').trim();
+    const v = fmtDate(row[3]);
+    let e = fmtDate(row[4]);
+    if (!e || !['LQ','CR','DB'].includes(sit)) e = v;
+    records.push({
+      o, v, e,
+      a: Math.round((parseFloat(row[8]) || 0) * 100) / 100,
+      s: sit,
+      c: String(row[10] || 'Sem Categoria').trim(),
+      p: String(row[13] || 'PROJETO PADRÃO').trim(),
+      f: String(row[6]  || '').trim(),   // fornecedor / cliente
+    });
+  }
+  return records;
+}
+
+/* ══════════════════════════════════════════════
+   FILTROS
+══════════════════════════════════════════════ */
+function buildFilters() {
+  const projs = [...new Set(DATA.map(r => r.p))].sort();
+  const psel = document.getElementById('filter-project');
+  psel.innerHTML = '<option value="all">Todos os Projetos</option>';
+  projs.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p.length > 70 ? p.slice(0,67)+'…' : p;
+    psel.appendChild(o);
+  });
+
+  const months = [...new Set(DATA.filter(r => r.v).map(r => r.v.slice(0,7)))].sort();
+  const msel = document.getElementById('filter-month');
+  const curM = todayStr().slice(0,7);
+  msel.innerHTML = '';
+  months.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m; o.textContent = mLabel(m);
+    if (m === curM) o.selected = true;
+    msel.appendChild(o);
+  });
+
+  const years = [...new Set(DATA.filter(r => r.v).map(r => +r.v.slice(0,4)))].sort();
+  const ysel = document.getElementById('filter-year');
+  ysel.innerHTML = '<option value="">Todos</option>';
+  const curY = new Date().getFullYear();
+  years.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if (y === curY) o.selected = true;
+    ysel.appendChild(o);
+  });
+}
+
+function getF() {
+  return {
+    project: document.getElementById('filter-project').value,
+    month:   document.getElementById('filter-month').value,
+    year:    document.getElementById('filter-year').value,
+    search: (document.getElementById('filter-search').value || '').trim().toLowerCase(),
+    status:  document.getElementById('filter-status').value,
+  };
+}
+
+function onFiltersChange() {
+  if (currentTab === 'dashboard') loadDashboard();
+  if (currentTab === 'daily')     renderDaily();
+  if (currentTab === 'monthly')   renderMonthly();
+  if (currentTab === 'recv')      renderDetail('recv');
+  if (currentTab === 'pagar')     renderDetail('pag');
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = '';
+  el.classList.add('active');
+  currentTab = tab;
+  const extra = tab === 'recv' || tab === 'pagar';
+  document.getElementById('search-wrap').style.display = extra ? 'flex' : 'none';
+  document.getElementById('status-wrap').style.display = extra ? 'flex' : 'none';
+  if (tab === 'daily')   renderDaily();
+  if (tab === 'monthly') renderMonthly();
+  if (tab === 'recv')    renderDetail('recv');
+  if (tab === 'pagar')   renderDetail('pag');
+}
+
+/* ══════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════ */
+const BRL  = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:2}).format(v);
+const BRLs = v => { const a=Math.abs(v); return a>=1e6?`R$ ${(v/1e6).toFixed(1)}M`:a>=1e3?`R$ ${(v/1e3).toFixed(0)}K`:BRL(v); };
+const MN   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const mLabel = m => { const [y,mo]=m.split('-'); return `${MN[+mo-1]}/${y.slice(2)}`; };
+const r2   = v => Math.round(v * 100) / 100;
+const esc  = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const todayStr = () => new Date().toISOString().slice(0,10);
+const addDays  = (s,n) => { const d=new Date(s); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const daysDiff = (a,b) => Math.round((new Date(b)-new Date(a))/86400000);
+const cellHtml = v => !v ? '<span class="vz">—</span>' : `<span class="${v>0?'vp':'vn'}">${BRL(v)}</span>`;
+
+function getLast12() {
+  const r = [], now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    r.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+  return r;
+}
+
+const isR  = r => ['LQ','CR','DB'].includes(r.s);
+const isAB = r => r.s === 'AB';
+const isReceber = r => r.o === 'R' || (r.o === 'T' && r.s === 'CR');
+const isPagar   = r => r.o === 'P' || (r.o === 'T' && r.s === 'DB');
+
+function fp(project) { return project === 'all' ? DATA : DATA.filter(r => r.p === project); }
+function acc(obj, k1, k2, val) { if (!obj[k1]) obj[k1]={}; obj[k1][k2]=(obj[k1][k2]||0)+val; }
+
+/* ══════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════ */
+function computeDashboard(project) {
+  const today=todayStr(), curP=today.slice(0,7), n30=addDays(today,30);
+  const data=fp(project);
+  const k={recv_mes:0,pay_mes:0,atraso_rec:0,atraso_pag:0,fut_rec:0,fut_pag:0,n30r:0,n30p:0};
+  const mR={},mP={},rA={},pA={};
+  for (const r of data) {
+    if (isR(r) && r.e) {
+      const p = r.e.slice(0,7);
+      if (p===curP){ if(isReceber(r))k.recv_mes+=r.a; if(isPagar(r))k.pay_mes+=r.a; }
+      if (r.o==='R'){ mR[p]=(mR[p]||0)+r.a; rA[r.c]=(rA[r.c]||0)+r.a; }
+      if (r.o==='P'){ mP[p]=(mP[p]||0)+r.a; pA[r.c]=(pA[r.c]||0)+r.a; }
+    }
+    if (isAB(r) && r.v) {
+      if (r.o==='R'){ if(r.v<today)k.atraso_rec+=r.a; else{k.fut_rec+=r.a;if(r.v<=n30)k.n30r+=r.a;} }
+      if (r.o==='P'){ if(r.v<today)k.atraso_pag+=r.a; else{k.fut_pag+=r.a;if(r.v<=n30)k.n30p+=r.a;} }
+    }
+  }
+  k.resultado = k.recv_mes - k.pay_mes;
+  const l12 = getLast12();
+  return {
+    k,
+    monthly_recv: Object.fromEntries(l12.map(p=>[p, mR[p]||0])),
+    monthly_pay:  Object.fromEntries(l12.map(p=>[p, mP[p]||0])),
+    top_rec: Object.entries(rA).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([c,v])=>({conta:c,valor:v})),
+    top_pag: Object.entries(pA).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([c,v])=>({conta:c,valor:v})),
+  };
+}
+
+function setKpi(id, txt, cls) { const el=document.getElementById(id); el.textContent=txt; el.className='kpi-value '+(cls||''); }
+function dc(id) { if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function loadDashboard() {
+  const { project } = getF();
+  const d = computeDashboard(project);
+  const k = d.k;
+  setKpi('k-recv-mes', BRL(k.recv_mes), 'tv-recv');
+  setKpi('k-pay-mes',  BRL(k.pay_mes),  'tv-pag');
+  setKpi('k-result',   BRL(k.resultado), k.resultado>=0?'tv-recv':'tv-pag');
+  setKpi('k-atrec',    BRL(k.atraso_rec),'tv-warn');
+  setKpi('k-atpag',    BRL(k.atraso_pag),'tv-pag');
+  setKpi('k-frec',     BRL(k.fut_rec),   'tv-recv');
+  setKpi('k-fpag',     BRL(k.fut_pag),   'tv-pag');
+  document.getElementById('k-30rec').textContent = BRL(k.n30r);
+  document.getElementById('k-30pag').textContent = BRL(k.n30p);
+  const sl = k.fut_rec - k.fut_pag;
+  setKpi('k-saldo', BRL(sl), sl>=0?'tv-recv':'tv-pag');
+
+  dc('ch-monthly');
+  charts['ch-monthly'] = new Chart(document.getElementById('ch-monthly'), {
+    type:'bar',
+    data:{ labels: Object.keys(d.monthly_recv).map(mLabel), datasets:[
+      {label:'Receitas',data:Object.values(d.monthly_recv),backgroundColor:'rgba(26,122,74,.7)',borderColor:'#1a7a4a',borderWidth:1},
+      {label:'Despesas',data:Object.values(d.monthly_pay), backgroundColor:'rgba(192,57,43,.7)',borderColor:'#c0392b',borderWidth:1},
+    ]},
+    options:{responsive:true,plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${BRL(c.parsed.y)}`}}},scales:{y:{ticks:{callback:v=>BRLs(v),font:{size:10}}}}},
+  });
+
+  dc('ch-future');
+  charts['ch-future'] = new Chart(document.getElementById('ch-future'), {
+    type:'doughnut',
+    data:{ labels:['A Receber','A Pagar'], datasets:[{data:[k.fut_rec,k.fut_pag],backgroundColor:['rgba(26,122,74,.8)','rgba(192,57,43,.8)'],borderWidth:2}] },
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>`${c.label}: ${BRL(c.parsed)}`}}}},
+  });
+
+  function hbar(id, data, bg, bc) {
+    dc(id);
+    charts[id] = new Chart(document.getElementById(id), {
+      type:'bar',
+      data:{ labels:data.map(d=>d.conta.length>38?d.conta.slice(0,35)+'…':d.conta), datasets:[{data:data.map(d=>d.valor),backgroundColor:bg,borderColor:bc,borderWidth:1}] },
+      options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>BRL(c.parsed.x)}}},scales:{x:{ticks:{callback:v=>BRLs(v),font:{size:10}}},y:{ticks:{font:{size:10}}}}},
+    });
+  }
+  hbar('ch-tp', d.top_pag, 'rgba(192,57,43,.75)', '#c0392b');
+  hbar('ch-tr', d.top_rec, 'rgba(26,122,74,.75)',  '#1a7a4a');
+}
+
+/* ══════════════════════════════════════════════
+   FLOW TABLE BUILDER
+══════════════════════════════════════════════ */
+function buildRows(rM, pM, keys) {
+  const all = new Set([...Object.keys(rM), ...Object.keys(pM)]);
+  return [...all].sort().map(c => {
+    const real = keys.map(k => r2(rM[c]?.[k] || 0));
+    const prev = keys.map(k => r2(pM[c]?.[k] || 0));
+    return { conta:c, real, prev, total_real:r2(real.reduce((a,b)=>a+b,0)), total_prev:r2(prev.reduce((a,b)=>a+b,0)) };
+  });
+}
+
+function buildSummary(recv, pag, n) {
+  const cs = (rows,k) => Array.from({length:n},(_,i) => r2(rows.reduce((s,r)=>s+r[k][i],0)));
+  const rr=cs(recv,'real'),rp=cs(recv,'prev'),pr=cs(pag,'real'),pp=cs(pag,'prev');
+  const sd = Array.from({length:n},(_,i) => r2(rr[i]+rp[i]-pr[i]-pp[i]));
+  return { recv_real:rr, recv_prev:rp, pag_real:pr, pag_prev:pp, saldo_dia:sd };
+}
+
+function buildFlowTable(cols, recv, pag, summary, todayCol) {
+  const sR=layerState.real, sP=layerState.prev, n=cols.length;
+  const tc = i => cols[i]===todayCol ? 'col-today' : '';
+
+  let h = '<table class="flow-table"><thead><tr>';
+  h += '<th class="col-conta">Conta Financeira</th><th class="col-tipo">Tipo</th>';
+  for (let i=0;i<n;i++) h += `<th class="${tc(i)}">${cols[i]}</th>`;
+  h += '<th class="col-total">TOTAL</th></tr></thead><tbody>';
+
+  const dataRows = (row) => {
+    let s = '';
+    if (sR && row.total_real!==0) {
+      s += `<tr class="row-real"><td class="col-conta">${esc(row.conta)}</td><td class="col-tipo"><span class="b-real">Real</span></td>`;
+      for (let i=0;i<n;i++) s += `<td class="${tc(i)}">${cellHtml(row.real[i])}</td>`;
+      s += `<td class="col-total">${cellHtml(row.total_real)}</td></tr>`;
+    }
+    if (sP && row.total_prev!==0) {
+      s += `<tr class="row-prev"><td class="col-conta">${esc(row.conta)}</td><td class="col-tipo"><span class="b-prev">Prev</span></td>`;
+      for (let i=0;i<n;i++) s += `<td class="${tc(i)}">${cellHtml(row.prev[i])}</td>`;
+      s += `<td class="col-total">${cellHtml(row.total_prev)}</td></tr>`;
+    }
+    return s;
+  };
+
+  h += `<tr class="sec-recv"><td class="col-conta" colspan="2"><i class="bi bi-arrow-down-circle me-1"></i>ENTRADAS (Contas a Receber)</td>${'<td></td>'.repeat(n)}<td class="col-total"></td></tr>`;
+  recv.forEach(row => { h += dataRows(row); });
+  h += `<tr class="row-subtot" style="border-top:2px solid #6ab58f"><td class="col-conta">▸ TOTAL ENTRADAS</td><td class="col-tipo"></td>`;
+  let tRR=0,tRP=0;
+  for (let i=0;i<n;i++) { const v=(sR?(summary.recv_real[i]||0):0)+(sP?(summary.recv_prev[i]||0):0); tRR+=summary.recv_real[i]||0; tRP+=summary.recv_prev[i]||0; h+=`<td class="${tc(i)}">${cellHtml(v||null)}</td>`; }
+  h += `<td class="col-total tv-recv">${cellHtml((sR?tRR:0)+(sP?tRP:0))}</td></tr>`;
+
+  h += `<tr class="sec-pag"><td class="col-conta" colspan="2"><i class="bi bi-arrow-up-circle me-1"></i>SAÍDAS (Contas a Pagar)</td>${'<td></td>'.repeat(n)}<td class="col-total"></td></tr>`;
+  pag.forEach(row => { h += dataRows(row); });
+  h += `<tr class="row-subtot" style="border-top:2px solid #e8a09a"><td class="col-conta">▸ TOTAL SAÍDAS</td><td class="col-tipo"></td>`;
+  let tPR=0,tPP=0;
+  for (let i=0;i<n;i++) { const v=(sR?(summary.pag_real[i]||0):0)+(sP?(summary.pag_prev[i]||0):0); tPR+=summary.pag_real[i]||0; tPP+=summary.pag_prev[i]||0; h+=`<td class="${tc(i)}">${cellHtml(v||null)}</td>`; }
+  h += `<td class="col-total tv-pag">${cellHtml((sR?tPR:0)+(sP?tPP:0))}</td></tr>`;
+
+  const sld = Array.from({length:n},(_,i)=>r2(((sR?summary.recv_real[i]:0)+(sP?summary.recv_prev[i]:0))-((sR?summary.pag_real[i]:0)+(sP?summary.pag_prev[i]:0))));
+  const totS = r2(sld.reduce((a,b)=>a+b,0));
+  const sbg = totS>=0?'#d1fae5':'#fee2e2', scbg = totS>=0?'#a7f3d0':'#fca5a5';
+  h += `<tr class="row-saldo" style="background:${sbg};border-top:2px solid #94a3b8"><td class="col-conta" style="background:${sbg}">SALDO DO PERÍODO</td><td class="col-tipo" style="background:${sbg}"></td>`;
+  for (let i=0;i<n;i++) h += `<td class="${tc(i)}">${cellHtml(sld[i]||null)}</td>`;
+  h += `<td class="col-total" style="background:${scbg}">${cellHtml(totS)}</td></tr>`;
+
+  if (summary.saldo_acum) {
+    const last = summary.saldo_acum[summary.saldo_acum.length-1]||0;
+    h += `<tr class="row-saldo" style="background:#dbeafe;border-top:1px solid #93c5fd"><td class="col-conta" style="background:#dbeafe">SALDO ACUMULADO</td><td class="col-tipo" style="background:#dbeafe"></td>`;
+    for (let i=0;i<n;i++) h += `<td class="${tc(i)}">${cellHtml(summary.saldo_acum[i]||null)}</td>`;
+    h += `<td class="col-total" style="background:#bfdbfe">${cellHtml(last)}</td></tr>`;
+  }
+  return h + '</tbody></table>';
+}
+
+/* ══════════════════════════════════════════════
+   FLUXO DIÁRIO
+══════════════════════════════════════════════ */
+function renderDaily() {
+  const { project, month } = getF();
+  const [yr,mo] = [+month.slice(0,4), +month.slice(5,7)];
+  const dim = new Date(yr,mo,0).getDate();
+  const days = Array.from({length:dim},(_,i)=>i+1);
+  const today = todayStr();
+  const todayDay = today.slice(0,7)===month ? +today.slice(8,10) : null;
+  const data = fp(project);
+  const rR={},rP={},pR={},pP={};
+  for (const r of data) {
+    if (isR(r)&&r.e&&r.e.startsWith(month)) { const d=+r.e.slice(8,10); if(isReceber(r))acc(rR,r.c,d,r.a); if(isPagar(r))acc(rP,r.c,d,r.a); }
+    if (isAB(r)&&r.v&&r.v.startsWith(month)) { const d=+r.v.slice(8,10); if(r.o==='R')acc(pR,r.c,d,r.a); if(r.o==='P')acc(pP,r.c,d,r.a); }
+  }
+  const recv=buildRows(rR,pR,days), pag=buildRows(rP,pP,days), n=days.length;
+  const sum = buildSummary(recv,pag,n);
+  let accum=0; sum.saldo_acum = sum.saldo_dia.map(v=>{accum+=v;return r2(accum);});
+  const cols = days.map(day=>{const dow=['D','S','T','Q','Q','S','S'][new Date(yr,mo-1,day).getDay()];return `${String(day).padStart(2,'0')}<br><small style="opacity:.6">${dow}</small>`;});
+  const todayCol = todayDay!=null ? cols[days.indexOf(todayDay)] : null;
+  document.getElementById('daily-wrap').innerHTML = buildFlowTable(cols,recv,pag,sum,todayCol);
+}
+
+/* ══════════════════════════════════════════════
+   FLUXO MENSAL
+══════════════════════════════════════════════ */
+function renderMonthly() {
+  const { project, year } = getF();
+  const data = fp(project);
+  const ms = new Set();
+  for (const r of data) {
+    if (isR(r)&&r.e&&(!year||r.e.startsWith(year))) ms.add(r.e.slice(0,7));
+    if (isAB(r)&&r.v&&(!year||r.v.startsWith(year))) ms.add(r.v.slice(0,7));
+  }
+  const months = [...ms].sort();
+  if (!months.length) { document.getElementById('monthly-wrap').innerHTML='<div class="loading">Sem dados para o período.</div>'; return; }
+  const mSet = new Set(months);
+  const rR={},rP={},pR={},pP={};
+  for (const r of data) {
+    if (isR(r)&&r.e&&mSet.has(r.e.slice(0,7))){ const p=r.e.slice(0,7); if(isReceber(r))acc(rR,r.c,p,r.a); if(isPagar(r))acc(rP,r.c,p,r.a); }
+    if (isAB(r)&&r.v&&mSet.has(r.v.slice(0,7))){ const p=r.v.slice(0,7); if(r.o==='R')acc(pR,r.c,p,r.a); if(r.o==='P')acc(pP,r.c,p,r.a); }
+  }
+  const recv=buildRows(rR,pR,months), pag=buildRows(rP,pP,months);
+  const sum = buildSummary(recv,pag,months.length);
+  const curM = mLabel(todayStr().slice(0,7));
+  document.getElementById('monthly-wrap').innerHTML = buildFlowTable(months.map(mLabel),recv,pag,sum,curM);
+}
+
+/* ══════════════════════════════════════════════
+   ABAS A RECEBER / A PAGAR
+══════════════════════════════════════════════ */
+function renderDetail(type) {
+  const { project, search, status } = getF();
+  const today = todayStr();
+  const isRec = (type === 'recv');
+  const data = fp(project).filter(r => {
+    if (isRec  && r.o !== 'R') return false;
+    if (!isRec && r.o !== 'P') return false;
+    if (status === 'AB' && r.s !== 'AB') return false;
+    if (status === 'LQ' && r.s !== 'LQ') return false;
+    if (search && !r.f.toLowerCase().includes(search) &&
+        !r.p.toLowerCase().includes(search) &&
+        !r.c.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const atrasado = data.filter(r => r.s==='AB' && r.v && r.v < today);
+  const futuro   = data.filter(r => r.s==='AB' && r.v && r.v >= today);
+  const totAt  = r2(atrasado.reduce((s,r)=>s+r.a,0));
+  const totFut = r2(futuro.reduce((s,r)=>s+r.a,0));
+  const totG   = r2(data.reduce((s,r)=>s+r.a,0));
+  const statsId = isRec ? 'recv-stats' : 'pag-stats';
+  document.getElementById(statsId).innerHTML = `
+    <div class="stat-pill"><span class="lbl">${isRec?'A Receber':'A Pagar'} em Atraso</span><span style="color:var(--pag);font-size:1.1rem">${BRL(totAt)}</span></div>
+    <div class="stat-pill"><span class="lbl">No Prazo / Futuro</span><span style="color:var(--recv);font-size:1.1rem">${BRL(totFut)}</span></div>
+    <div class="stat-pill"><span class="lbl">Total Geral (filtro)</span><span style="font-size:1.1rem">${BRL(totG)}</span></div>
+    <div class="stat-pill"><span class="lbl">Registros</span><span style="font-size:1.1rem">${data.length}</span></div>`;
+
+  const st = sortState[type];
+  data.sort((a,b) => {
+    let va,vb;
+    if(st.col===0){va=a.f;vb=b.f;}
+    else if(st.col===1){va=a.c;vb=b.c;}
+    else if(st.col===2){va=a.p;vb=b.p;}
+    else if(st.col===3||st.col===4){va=a.v||'9999';vb=b.v||'9999';}
+    else{va=a.a;vb=b.a;}
+    return (va<vb?-1:va>vb?1:0)*(st.asc?1:-1);
+  });
+
+  const bodyId = isRec ? 'recv-body' : 'pag-body';
+  const tbody = document.getElementById(bodyId);
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:2rem;color:#94a3b8">Nenhum registro encontrado.</td></tr>`;
+    return;
+  }
+
+  let h = '';
+  for (const r of data) {
+    const venc = r.v ? new Date(r.v+'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    let badge='', dias='';
+    if (r.s==='AB' && r.v) {
+      const d = daysDiff(today, r.v);
+      if      (d < 0) { badge=`<span class="badge-at">Atrasado</span>`; dias=`<span style="color:var(--pag)">${Math.abs(d)}d atrás</span>`; }
+      else if (d===0) { badge=`<span class="badge-hj">Hoje</span>`; dias='Hoje'; }
+      else            { badge=`<span class="badge-ok">No Prazo</span>`; dias=`<span style="color:var(--recv)">em ${d}d</span>`; }
+    } else if (r.s==='LQ') {
+      badge = '<span class="badge-lq">Liquidado</span>';
+    }
+    const fNm = r.f.length>50 ? r.f.slice(0,47)+'…' : r.f;
+    const cNm = r.c.length>35 ? r.c.slice(0,32)+'…' : r.c;
+    const pNm = r.p.length>45 ? r.p.slice(0,42)+'…' : r.p;
+    h += `<tr>
+      <td title="${esc(r.f)}">${esc(fNm)}</td>
+      <td title="${esc(r.c)}">${esc(cNm)}</td>
+      <td title="${esc(r.p)}">${esc(pNm)}</td>
+      <td>${venc}</td>
+      <td>${badge} ${dias}</td>
+      <td style="text-align:right;font-weight:600">${cellHtml(r.a)}</td>
+    </tr>`;
+  }
+  tbody.innerHTML = h;
+}
+
+function sortDetail(type, col) {
+  const st = sortState[type];
+  if (st.col===col) st.asc=!st.asc; else { st.col=col; st.asc=true; }
+  renderDetail(type==='recv'?'recv':'pag');
+}
+
+/* ══════════════════════════════════════════════
+   TOGGLE CAMADAS
+══════════════════════════════════════════════ */
+function tgl(layer, scope) {
+  layerState[layer] = !layerState[layer];
+  const btn = document.getElementById(`btn-${layer[0]}${scope}`);
+  if (layerState[layer]) btn.classList.add('on', layer==='real'?'recv':'prev');
+  else btn.classList.remove('on','recv','pag','prev');
+  if (currentTab==='daily')   renderDaily();
+  if (currentTab==='monthly') renderMonthly();
+}
+</script>
+</body>
+</html>
