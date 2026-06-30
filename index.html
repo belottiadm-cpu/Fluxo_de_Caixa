@@ -980,20 +980,17 @@ function sbMsg(txt){var el=document.getElementById('sb-msg');if(el)el.textConten
 function sbShow(){document.getElementById('sb-loading').classList.remove('hide');}
 function sbHide(){document.getElementById('sb-loading').classList.add('hide');}
 
-initSelects();
-initRecPagSelects();
-
 (async function(){
   sbShow();
   try{
     sbMsg('Carregando dados do banco...');
     const rows=await sbFetch();
-    if(rows.length===0){sbMsg('Nenhum dado. Use o botao Importar Planilha.');return;}
+    if(rows.length===0){sbHide();return;}
     RAW.length=0;
     rows.forEach(function(r){RAW.push([r.origem,r.vencimento||'',parseFloat(r.valor)||0,r.situacao||'AB',r.conta_financeira||'',r.projeto||'',r.fornecedor_cliente||'',r.ult_pagto||(r.situacao==='LQ'?r.data_efetiva:null)||'',r.cod_prj||0,r.data_entrada||'']);});
     initSelects(); initRecPagSelects(); applyAll();
     sbHide();
-  }catch(e){sbMsg('Erro: '+e.message);}
+  }catch(e){sbMsg('Erro: '+e.message);setTimeout(sbHide,3000);}
 })();
 </script>
 </body>
