@@ -964,22 +964,24 @@ async function sbFetch(){
 }
 
 async function sbUpload(rawRows){
+  function sd(s){if(!s)return null;if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return null;var p=s.split('-');if(+p[0]===0||+p[1]===0||+p[2]===0)return null;return s;}
   sbMsg('Limpando dados antigos...');
   const tr=await fetch(SB_URL+'/rest/v1/rpc/truncate_lancamentos',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},SB_HDR),body:'{}'});
   if(!tr.ok){const tb=await tr.text();throw new Error('Falha ao limpar (HTTP '+tr.status+'): '+tb);}
   const db=rawRows.map(function(r){
+    var ef=(r[3]==='LQ'&&r[7])?r[7]:r[1];
     return{
       origem:r[0]||'R',
-      vencimento:r[1]||null,
-      data_efetiva:(r[3]==='LQ'&&r[7])?r[7]:(r[1]||null),
+      vencimento:sd(r[1]),
+      data_efetiva:sd(ef),
       valor:(isNaN(r[2])||r[2]===null)?0:r[2],
       situacao:r[3]||'AB',
       conta_financeira:r[4]||null,
       projeto:r[5]||null,
       fornecedor_cliente:r[6]||null,
-      ult_pagto:r[7]||null,
+      ult_pagto:sd(r[7]),
       cod_prj:(r[8]&&!isNaN(r[8]))?Number(r[8]):null,
-      data_entrada:r[9]||null
+      data_entrada:sd(r[9])
     };
   });
   const BATCH=500,total=db.length;
