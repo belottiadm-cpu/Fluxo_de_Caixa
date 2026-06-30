@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluxo de Caixa — Palladium</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <style>
+    :root {
+      --brand: #1B3A5C;
+      --brand-light: #2C5F8A;
+      --recv: #1a7a4a;
+      --recv-bg: #e8f5ee;
+      --recv-light: rgba(26,122,74,.12);
+      --pag: #c0392b;
+      --pag-bg: #fdecea;
+      --pag-light: rgba(192,57,43,.12);
+      --today: #fff8e1;
+      --today-border: #f59e0b;
+      --acum: #dbeafe;
+      --saldo-pos: #d1fae5;
+      --saldo-neg: #fee2e2;
+      --table-header: #1B3A5C;
+      --section-recv: #e0f0e8;
+      --section-pag: #fce8e6;
+    }
+    * { box-sizing: border-box; }
+    body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; font-size: .875rem; color: #1e293b; }
+
+    /* ── Navbar ── */
+    .top-bar {
+      background: var(--brand);
+      padding: .6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .top-bar .brand { color: #fff; font-weight: 700; font-size: 1.1rem; letter-spacing: .3px; }
+    .top-bar .sub   { color: #94a3b8; font-size: .8rem; }
+    .top-bar .ms-auto { margin-left: auto; }
+    .btn-reload {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.3);
+      color: #cbd5e1;
+      border-radius: 6px;
+      padding: .3rem .75rem;
+      font-size: .78rem;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-reload:hover { background: rgba(255,255,255,.1); color: #fff; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #fff;
+      padding: .6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      border-bottom: 1px solid #e2e8f0;
+      flex-wrap: wrap;
+    }
+    .filter-bar label { font-weight: 600; font-size: .78rem; color: #64748b; white-space: nowrap; }
+    .filter-bar select { font-size: .82rem; border-radius: 6px; border: 1px solid #cbd5e1; padding: .3rem .6rem; min-width: 160px; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      background: #fff;
+      padding: 0 1.5rem;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      gap: 0;
+    }
+    .tab-item {
+      padding: .65rem 1.25rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .83rem;
+      color: #64748b;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      transition: color .15s, border-color .15s;
+      user-select: none;
+    }
+    .tab-item:hover  { color: var(--brand); }
+    .tab-item.active { color: var(--brand); border-bottom-color: var(--brand); }
+
+    /* ── Content ── */
+    .content { padding: 1.25rem 1.5rem; }
+
+    /* ── KPI Cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .9rem; margin-bottom: 1.1rem; }
+    .kpi-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      box-shadow: 0 1px 6px rgba(0,0,0,.07);
+      border-left: 4px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card.recv { border-left-color: var(--recv); }
+    .kpi-card.pag  { border-left-color: var(--pag); }
+    .kpi-card.warn { border-left-color: #f59e0b; }
+    .kpi-card.info { border-left-color: #3b82f6; }
+    .kpi-label { font-size: .72rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .4px; }
+    .kpi-value { font-size: 1.35rem; font-weight: 700; margin-top: .2rem; line-height: 1.1; }
+    .kpi-sub   { font-size: .72rem; color: #94a3b8; margin-top: .3rem; }
+    .kpi-icon  { position: absolute; right: 1rem; top: .8rem; font-size: 2rem; opacity: .08; }
+    .text-recv { color: var(--recv); }
+    .text-pag  { color: var(--pag); }
+    .text-warn { color: #d97706; }
+    .text-info { color: #2563eb; }
+
+    /* ── Chart cards ── */
+    .chart-row { display: grid; gap: .9rem; margin-bottom: 1.1rem; }
+    .chart-row.r1 { grid-template-columns: 2fr 1fr; }
+    .chart-row.r2 { grid-template-columns: 1fr 1fr; }
+    .chart-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.07); overflow: hidden; }
+    .chart-card .head { padding: .65rem 1rem; font-weight: 700; font-size: .8rem; border-bottom: 1px solid #f1f5f9; background: #f8fafc; }
+    .chart-card .body { padding: .75rem 1rem; }
+
+    /* ── Flow table wrapper ── */
+    .flow-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 230px);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 6px rgba(0,0,0,.07);
+    }
+    .flow-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: .76rem;
+      min-width: max-content;
+      width: 100%;
+    }
+    .flow-table th, .flow-table td {
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 3px 7px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    /* Sticky header row */
+    .flow-table thead tr:first-child th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--table-header);
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      font-size: .72rem;
+      border-color: #2C5F8A;
+    }
+    /* Sticky first column */
+    .col-conta {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      min-width: 210px;
+      max-width: 210px;
+      text-align: left !important;
+      background: #fff;
+      font-weight: 500;
+    }
+    /* Top-left corner: sticky both */
+    thead .col-conta { z-index: 4 !important; background: var(--table-header) !important; }
+
+    /* Second sticky col (Tipo) */
+    .col-tipo {
+      position: sticky;
+      left: 210px;
+      z-index: 1;
+      min-width: 56px;
+      text-align: center !important;
+      background: #fff;
+      border-right: 2px solid #cbd5e1 !important;
+    }
+    thead .col-tipo { z-index: 4 !important; background: var(--table-header) !important; }
+
+    /* Total column on right */
+    .col-total {
+      position: sticky;
+      right: 0;
+      z-index: 1;
+      background: #f8fafc;
+      font-weight: 700;
+      border-left: 2px solid #cbd5e1 !important;
+    }
+    thead .col-total { z-index: 4 !important; background: #0f2942 !important; }
+
+    /* Today column highlight */
+    .col-today { background: var(--today) !important; }
+    .flow-table thead th.col-today { background: #b45309 !important; }
+
+    /* Section header rows */
+    .sec-recv td { background: var(--section-recv); font-weight: 700; font-size: .78rem; color: var(--recv); border-top: 2px solid #6ab58f; }
+    .sec-recv .col-conta { background: var(--section-recv); }
+    .sec-recv .col-tipo  { background: var(--section-recv); }
+    .sec-recv .col-total { background: var(--section-recv); }
+    .sec-pag  td { background: var(--section-pag); font-weight: 700; font-size: .78rem; color: var(--pag); border-top: 2px solid #e8a09a; }
+    .sec-pag .col-conta { background: var(--section-pag); }
+    .sec-pag .col-tipo  { background: var(--section-pag); }
+    .sec-pag .col-total { background: var(--section-pag); }
+
+    /* Data rows */
+    .row-real .col-conta { background: #fafafa; padding-left: 18px; }
+    .row-real .col-tipo  { background: #fafafa; }
+    .row-real .col-total { background: #f8fafc; }
+    .row-prev .col-conta { background: #fafafa; padding-left: 18px; color: #64748b; font-style: italic; }
+    .row-prev .col-tipo  { background: #fafafa; }
+    .row-prev .col-total { background: #f8fafc; }
+    .row-prev td         { opacity: .85; }
+
+    /* Sub-total rows */
+    .row-subtot td { background: #f0f4f8; font-weight: 700; font-size: .76rem; }
+    .row-subtot .col-conta { background: #f0f4f8; }
+    .row-subtot .col-tipo  { background: #f0f4f8; }
+    .row-subtot .col-total { background: #e8edf3; }
+
+    /* Saldo rows */
+    .row-saldo td { font-weight: 700; font-size: .78rem; }
+
+    /* Value formatting */
+    .vp  { color: #1a7a4a; }   /* positive */
+    .vn  { color: #c0392b; }   /* negative */
+    .vz  { color: #94a3b8; }   /* zero */
+
+    /* Badge */
+    .b-real { background: #dcfce7; color: #166534; font-size: .62rem; border-radius: 3px; padding: 1px 4px; font-weight: 600; }
+    .b-prev { background: #f1f5f9; color: #475569; font-size: .62rem; border-radius: 3px; padding: 1px 4px; font-weight: 600; }
+
+    /* Toggle buttons for flow */
+    .toggle-bar { display: flex; gap: .5rem; align-items: center; margin-bottom: .6rem; }
+    .tbtn {
+      padding: .3rem .75rem;
+      border-radius: 6px;
+      border: 1.5px solid #cbd5e1;
+      background: #fff;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #475569;
+      transition: all .15s;
+    }
+    .tbtn.on.recv { background: var(--recv); border-color: var(--recv); color: #fff; }
+    .tbtn.on.pag  { background: var(--pag);  border-color: var(--pag);  color: #fff; }
+    .tbtn.on.prev { background: #64748b; border-color: #64748b; color: #fff; }
+
+    /* Legend */
+    .legend { display: flex; gap: .9rem; font-size: .73rem; color: #64748b; margin-left: auto; align-items: center; }
+    .leg-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 3px; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 3rem; color: #64748b; }
+
+    @media (max-width: 900px) {
+      .chart-row.r1 { grid-template-columns: 1fr; }
+      .chart-row.r2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <i class="bi bi-cash-stack" style="color:#60a5fa;font-size:1.4rem"></i>
+  <span>
+    <span class="brand">Fluxo de Caixa</span>
+    <span class="sub ms-2">PALLADIUM</span>
+  </span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <span id="last-update" style="color:#94a3b8;font-size:.75rem"></span>
+    <button class="btn-reload" onclick="reloadData()">
+      <i class="bi bi-arrow-clockwise"></i> Recarregar
+    </button>
+  </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+  <div class="d-flex align-items-center gap-2">
+    <label><i class="bi bi-funnel me-1"></i>Projeto</label>
+    <select id="filter-project" onchange="onFiltersChange()">
+      <option value="all">Todos os Projetos</option>
+    </select>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <label><i class="bi bi-calendar3 me-1"></i>Mês (Fluxo Diário)</label>
+    <select id="filter-month" onchange="onFiltersChange()"></select>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <label><i class="bi bi-calendar-range me-1"></i>Ano (Fluxo Mensal)</label>
+    <select id="filter-year" onchange="onFiltersChange()">
+      <option value="">Todos os Anos</option>
+    </select>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab('dashboard', this)">
+    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+  </div>
+  <div class="tab-item" onclick="switchTab('daily', this)">
+    <i class="bi bi-calendar3"></i> Fluxo Diário
+  </div>
+  <div class="tab-item" onclick="switchTab('monthly', this)">
+    <i class="bi bi-bar-chart-line"></i> Fluxo Mensal
+  </div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- ════════════════════════════ DASHBOARD ════════════════════════════ -->
+  <div id="tab-dashboard">
+
+    <!-- KPIs Row 1 -->
+    <div class="kpi-grid">
+      <div class="kpi-card recv">
+        <i class="bi bi-arrow-down-circle kpi-icon text-recv"></i>
+        <div class="kpi-label">Recebido no Mês</div>
+        <div class="kpi-value text-recv" id="k-recv-mes">—</div>
+        <div class="kpi-sub">Liquidados no mês atual</div>
+      </div>
+      <div class="kpi-card pag">
+        <i class="bi bi-arrow-up-circle kpi-icon text-pag"></i>
+        <div class="kpi-label">Pago no Mês</div>
+        <div class="kpi-value text-pag" id="k-pay-mes">—</div>
+        <div class="kpi-sub">Liquidados no mês atual</div>
+      </div>
+      <div class="kpi-card info">
+        <i class="bi bi-graph-up kpi-icon text-info"></i>
+        <div class="kpi-label">Resultado do Mês</div>
+        <div class="kpi-value" id="k-resultado-mes">—</div>
+        <div class="kpi-sub">Recebido − Pago</div>
+      </div>
+      <div class="kpi-card warn">
+        <i class="bi bi-exclamation-triangle kpi-icon text-warn"></i>
+        <div class="kpi-label">A Receber em Atraso</div>
+        <div class="kpi-value text-warn" id="k-atraso-rec">—</div>
+        <div class="kpi-sub">Vencidos, ainda em aberto</div>
+      </div>
+      <div class="kpi-card pag">
+        <i class="bi bi-clock-history kpi-icon text-pag"></i>
+        <div class="kpi-label">A Pagar em Atraso</div>
+        <div class="kpi-value text-pag" id="k-atraso-pag">—</div>
+        <div class="kpi-sub">Vencidos, ainda em aberto</div>
+      </div>
+      <div class="kpi-card recv">
+        <i class="bi bi-calendar-check kpi-icon text-recv"></i>
+        <div class="kpi-label">A Receber (Futuro)</div>
+        <div class="kpi-value text-recv" id="k-fut-rec">—</div>
+        <div class="kpi-sub">30d: <span id="k-30d-rec" class="fw-bold">—</span></div>
+      </div>
+      <div class="kpi-card pag">
+        <i class="bi bi-calendar-x kpi-icon text-pag"></i>
+        <div class="kpi-label">A Pagar (Futuro)</div>
+        <div class="kpi-value text-pag" id="k-fut-pag">—</div>
+        <div class="kpi-sub">30d: <span id="k-30d-pag" class="fw-bold">—</span></div>
+      </div>
+      <div class="kpi-card info">
+        <i class="bi bi-wallet2 kpi-icon text-info"></i>
+        <div class="kpi-label">Saldo Líquido Futuro</div>
+        <div class="kpi-value" id="k-saldo-futuro">—</div>
+        <div class="kpi-sub">A Receber − A Pagar (futuro)</div>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-row r1">
+      <div class="chart-card">
+        <div class="head"><i class="bi bi-bar-chart me-1"></i>Receitas vs Despesas Mensais — Últimos 12 meses (Realizados)</div>
+        <div class="body"><canvas id="ch-monthly" height="110"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="head"><i class="bi bi-pie-chart me-1"></i>A Receber vs A Pagar — Futuro</div>
+        <div class="body"><canvas id="ch-future" height="190"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="chart-row r2">
+      <div class="chart-card">
+        <div class="head"><i class="bi bi-bar-chart-horizontal me-1"></i>Top 10 Contas de Despesa (Realizadas)</div>
+        <div class="body"><canvas id="ch-top-pag" height="230"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="head"><i class="bi bi-bar-chart-horizontal me-1"></i>Top 10 Contas de Receita (Realizadas)</div>
+        <div class="body"><canvas id="ch-top-rec" height="230"></canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /tab-dashboard -->
+
+  <!-- ════════════════════════════ FLUXO DIÁRIO ════════════════════════════ -->
+  <div id="tab-daily" style="display:none">
+    <div class="toggle-bar">
+      <button class="tbtn on recv" id="btn-real-d" onclick="toggleLayer('real','d')">
+        <i class="bi bi-check-circle"></i> Realizado
+      </button>
+      <button class="tbtn on prev" id="btn-prev-d" onclick="toggleLayer('prev','d')">
+        <i class="bi bi-hourglass-split"></i> Previsto (AB)
+      </button>
+      <div class="legend">
+        <span><span class="leg-dot" style="background:var(--recv)"></span>Entradas</span>
+        <span><span class="leg-dot" style="background:var(--pag)"></span>Saídas</span>
+        <span><span class="leg-dot" style="background:var(--today-border)"></span>Hoje</span>
+        <span style="font-style:italic;opacity:.7">itálico = previsto</span>
+      </div>
+    </div>
+    <div class="flow-wrap" id="daily-wrap">
+      <div class="loading"><i class="bi bi-hourglass-split me-2"></i>Selecione o mês e aguarde…</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════ FLUXO MENSAL ════════════════════════════ -->
+  <div id="tab-monthly" style="display:none">
+    <div class="toggle-bar">
+      <button class="tbtn on recv" id="btn-real-m" onclick="toggleLayer('real','m')">
+        <i class="bi bi-check-circle"></i> Realizado
+      </button>
+      <button class="tbtn on prev" id="btn-prev-m" onclick="toggleLayer('prev','m')">
+        <i class="bi bi-hourglass-split"></i> Previsto (AB)
+      </button>
+      <div class="legend">
+        <span><span class="leg-dot" style="background:var(--recv)"></span>Entradas</span>
+        <span><span class="leg-dot" style="background:var(--pag)"></span>Saídas</span>
+        <span style="font-style:italic;opacity:.7">itálico = previsto</span>
+      </div>
+    </div>
+    <div class="flow-wrap" id="monthly-wrap">
+      <div class="loading"><i class="bi bi-hourglass-split me-2"></i>Carregando…</div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   State
+═══════════════════════════════════════════════════════════ */
+let currentTab = 'dashboard';
+let charts = {};
+const layerState = { real: true, prev: true };  // shared for both views
+
+/* ═══════════════════════════════════════════════════════════
+   Formatting helpers
+═══════════════════════════════════════════════════════════ */
+const BRL = (v) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 }).format(v);
+
+const BRLshort = (v) => {
+  const abs = Math.abs(v);
+  if (abs >= 1e6) return `R$ ${(v / 1e6).toFixed(1)}M`;
+  if (abs >= 1e3) return `R$ ${(v / 1e3).toFixed(0)}K`;
+  return BRL(v);
+};
+
+const MONTHS_BR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+function monthLabel(m) {   // "2025-06" → "Jun/25"
+  const [y, mo] = m.split('-');
+  return `${MONTHS_BR[+mo - 1]}/${y.slice(2)}`;
+}
+
+function cellHtml(v) {
+  if (!v) return '<span class="vz">—</span>';
+  const cls = v > 0 ? 'vp' : 'vn';
+  return `<span class="${cls}">${BRL(v)}</span>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Init
+═══════════════════════════════════════════════════════════ */
+async function init() {
+  await Promise.all([loadProjects(), loadMonths(), loadYears()]);
+  await loadDashboard();
+  setUpdateTime();
+}
+
+function setUpdateTime() {
+  document.getElementById('last-update').textContent =
+    'Atualizado: ' + new Date().toLocaleString('pt-BR');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Filters
+═══════════════════════════════════════════════════════════ */
+async function loadProjects() {
+  const res = await fetch('/api/projects');
+  const list = await res.json();
+  const sel = document.getElementById('filter-project');
+  list.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p;
+    o.textContent = p.length > 70 ? p.slice(0, 67) + '…' : p;
+    sel.appendChild(o);
+  });
+}
+
+async function loadMonths() {
+  const res = await fetch('/api/months');
+  const list = await res.json();
+  const sel = document.getElementById('filter-month');
+  const today = new Date();
+  const cur = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  list.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = monthLabel(m);
+    if (m === cur) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+async function loadYears() {
+  const res = await fetch('/api/years');
+  const list = await res.json();
+  const sel = document.getElementById('filter-year');
+  const curYear = new Date().getFullYear();
+  list.forEach(y => {
+    const o = document.createElement('option');
+    o.value = y;
+    o.textContent = y;
+    if (y === curYear) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+function getFilters() {
+  return {
+    project: document.getElementById('filter-project').value,
+    month: document.getElementById('filter-month').value,
+    year: document.getElementById('filter-year').value,
+  };
+}
+
+function onFiltersChange() {
+  if (currentTab === 'dashboard') loadDashboard();
+  if (currentTab === 'daily')     loadDailyFlow();
+  if (currentTab === 'monthly')   loadMonthlyFlow();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Tab switching
+═══════════════════════════════════════════════════════════ */
+function switchTab(tab, el) {
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).style.display = '';
+  el.classList.add('active');
+  currentTab = tab;
+  if (tab === 'daily')   loadDailyFlow();
+  if (tab === 'monthly') loadMonthlyFlow();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Dashboard
+═══════════════════════════════════════════════════════════ */
+async function loadDashboard() {
+  const { project } = getFilters();
+  const res = await fetch(`/api/dashboard?project=${encodeURIComponent(project)}`);
+  const d = await res.json();
+  const k = d.kpis;
+
+  setText('k-recv-mes', BRL(k.recv_mes), k.recv_mes >= 0 ? 'text-recv' : 'text-pag');
+  setText('k-pay-mes',  BRL(k.pay_mes),  'text-pag');
+  setText('k-resultado-mes', BRL(k.resultado_mes), k.resultado_mes >= 0 ? 'text-recv' : 'text-pag');
+  setText('k-atraso-rec',   BRL(k.atraso_receber), 'text-warn');
+  setText('k-atraso-pag',   BRL(k.atraso_pagar),   'text-pag');
+  setText('k-fut-rec',  BRL(k.futuro_receber), 'text-recv');
+  setText('k-fut-pag',  BRL(k.futuro_pagar),   'text-pag');
+  document.getElementById('k-30d-rec').textContent = BRL(k.next30_receber);
+  document.getElementById('k-30d-pag').textContent = BRL(k.next30_pagar);
+  const sl = k.futuro_receber - k.futuro_pagar;
+  setText('k-saldo-futuro', BRL(sl), sl >= 0 ? 'text-recv' : 'text-pag');
+
+  renderMonthlyChart(d.monthly_recv, d.monthly_pay);
+  renderFutureDonut(k.futuro_receber, k.futuro_pagar);
+  renderHBarChart('ch-top-pag', d.top_despesas, 'rgba(192,57,43,.75)', '#c0392b');
+  renderHBarChart('ch-top-rec', d.top_receitas, 'rgba(26,122,74,.75)',  '#1a7a4a');
+}
+
+function setText(id, txt, cls) {
+  const el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'kpi-value ' + (cls || '');
+}
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderMonthlyChart(recv, pay) {
+  destroyChart('ch-monthly');
+  const labels = Object.keys(recv).map(monthLabel);
+  charts['ch-monthly'] = new Chart(document.getElementById('ch-monthly'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Receitas',  data: Object.values(recv), backgroundColor: 'rgba(26,122,74,.7)',   borderColor: '#1a7a4a', borderWidth: 1 },
+        { label: 'Despesas', data: Object.values(pay),  backgroundColor: 'rgba(192,57,43,.7)',  borderColor: '#c0392b', borderWidth: 1 },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${BRL(c.parsed.y)}` } },
+      },
+      scales: { y: { ticks: { callback: v => BRLshort(v), font: { size: 10 } } } },
+    },
+  });
+}
+
+function renderFutureDonut(rec, pag) {
+  destroyChart('ch-future');
+  charts['ch-future'] = new Chart(document.getElementById('ch-future'), {
+    type: 'doughnut',
+    data: {
+      labels: ['A Receber', 'A Pagar'],
+      datasets: [{ data: [rec, pag], backgroundColor: ['rgba(26,122,74,.8)', 'rgba(192,57,43,.8)'], borderWidth: 2 }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 } } },
+        tooltip: { callbacks: { label: c => `${c.label}: ${BRL(c.parsed)}` } },
+      },
+    },
+  });
+}
+
+function renderHBarChart(id, data, bg, border) {
+  destroyChart(id);
+  charts[id] = new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.conta.length > 38 ? d.conta.slice(0, 35) + '…' : d.conta),
+      datasets: [{ data: data.map(d => d.valor), backgroundColor: bg, borderColor: border, borderWidth: 1 }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => BRL(c.parsed.x) } } },
+      scales: { x: { ticks: { callback: v => BRLshort(v), font: { size: 10 } } }, y: { ticks: { font: { size: 10 } } } },
+    },
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Layer toggles
+═══════════════════════════════════════════════════════════ */
+function toggleLayer(layer, scope) {
+  layerState[layer] = !layerState[layer];
+  const btnId = `btn-${layer}-${scope}`;
+  const btn = document.getElementById(btnId);
+  if (layerState[layer]) {
+    btn.classList.add('on', layer === 'real' ? 'recv' : 'prev');
+  } else {
+    btn.classList.remove('on', 'recv', 'pag', 'prev');
+  }
+  if (currentTab === 'daily')   loadDailyFlow();
+  if (currentTab === 'monthly') loadMonthlyFlow();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Flow table builder (shared by daily & monthly)
+═══════════════════════════════════════════════════════════ */
+function buildFlowTable(cols, recv, pag, summary, todayCol) {
+  const showReal = layerState.real;
+  const showPrev = layerState.prev;
+  const n = cols.length;
+
+  function thClass(i) {
+    return cols[i] === todayCol ? 'col-today' : '';
+  }
+  function tdClass(i) {
+    return cols[i] === todayCol ? 'col-today' : '';
+  }
+
+  let h = '<table class="flow-table"><thead><tr>';
+  h += '<th class="col-conta">Conta Financeira</th>';
+  h += '<th class="col-tipo">Tipo</th>';
+  for (let i = 0; i < n; i++) h += `<th class="${thClass(i)}">${cols[i]}</th>`;
+  h += '<th class="col-total">TOTAL</th>';
+  h += '</tr></thead><tbody>';
+
+  // ── ENTRADAS ──
+  h += `<tr class="sec-recv">
+    <td class="col-conta" colspan="2"><i class="bi bi-arrow-down-circle me-1"></i>ENTRADAS (Contas a Receber)</td>
+    ${'<td></td>'.repeat(n)}<td class="col-total"></td></tr>`;
+
+  recv.forEach(row => {
+    const hasReal = showReal && row.total_real !== 0;
+    const hasPrev = showPrev && row.total_prev !== 0;
+    if (hasReal) {
+      h += `<tr class="row-real"><td class="col-conta">${esc(row.conta)}</td>
+        <td class="col-tipo"><span class="b-real">Real</span></td>`;
+      for (let i = 0; i < n; i++) h += `<td class="${tdClass(i)}">${cellHtml(row.real[i])}</td>`;
+      h += `<td class="col-total">${cellHtml(row.total_real)}</td></tr>`;
+    }
+    if (hasPrev) {
+      h += `<tr class="row-prev"><td class="col-conta">${esc(row.conta)}</td>
+        <td class="col-tipo"><span class="b-prev">Prev</span></td>`;
+      for (let i = 0; i < n; i++) h += `<td class="${tdClass(i)}">${cellHtml(row.prev[i])}</td>`;
+      h += `<td class="col-total">${cellHtml(row.total_prev)}</td></tr>`;
+    }
+  });
+
+  // Sub-total entradas
+  h += `<tr class="row-subtot" style="border-top:2px solid #6ab58f">
+    <td class="col-conta">▸ TOTAL ENTRADAS</td><td class="col-tipo"></td>`;
+  for (let i = 0; i < n; i++) {
+    const rv = showReal ? (summary.recv_real[i] || 0) : 0;
+    const pv = showPrev ? (summary.recv_prev[i] || 0) : 0;
+    const tot = rv + pv;
+    h += `<td class="${tdClass(i)}">${cellHtml(tot || null)}</td>`;
+  }
+  const totRecvReal = summary.recv_real.reduce((a, b) => a + b, 0);
+  const totRecvPrev = summary.recv_prev.reduce((a, b) => a + b, 0);
+  h += `<td class="col-total text-recv">${cellHtml((showReal ? totRecvReal : 0) + (showPrev ? totRecvPrev : 0))}</td></tr>`;
+
+  // ── SAÍDAS ──
+  h += `<tr class="sec-pag">
+    <td class="col-conta" colspan="2"><i class="bi bi-arrow-up-circle me-1"></i>SAÍDAS (Contas a Pagar)</td>
+    ${'<td></td>'.repeat(n)}<td class="col-total"></td></tr>`;
+
+  pag.forEach(row => {
+    const hasReal = showReal && row.total_real !== 0;
+    const hasPrev = showPrev && row.total_prev !== 0;
+    if (hasReal) {
+      h += `<tr class="row-real"><td class="col-conta">${esc(row.conta)}</td>
+        <td class="col-tipo"><span class="b-real">Real</span></td>`;
+      for (let i = 0; i < n; i++) h += `<td class="${tdClass(i)}">${cellHtml(row.real[i])}</td>`;
+      h += `<td class="col-total">${cellHtml(row.total_real)}</td></tr>`;
+    }
+    if (hasPrev) {
+      h += `<tr class="row-prev"><td class="col-conta">${esc(row.conta)}</td>
+        <td class="col-tipo"><span class="b-prev">Prev</span></td>`;
+      for (let i = 0; i < n; i++) h += `<td class="${tdClass(i)}">${cellHtml(row.prev[i])}</td>`;
+      h += `<td class="col-total">${cellHtml(row.total_prev)}</td></tr>`;
+    }
+  });
+
+  // Sub-total saídas
+  h += `<tr class="row-subtot" style="border-top:2px solid #e8a09a">
+    <td class="col-conta">▸ TOTAL SAÍDAS</td><td class="col-tipo"></td>`;
+  for (let i = 0; i < n; i++) {
+    const rv = showReal ? (summary.pag_real[i] || 0) : 0;
+    const pv = showPrev ? (summary.pag_prev[i] || 0) : 0;
+    h += `<td class="${tdClass(i)}">${cellHtml((rv + pv) || null)}</td>`;
+  }
+  const totPagReal = summary.pag_real.reduce((a, b) => a + b, 0);
+  const totPagPrev = summary.pag_prev.reduce((a, b) => a + b, 0);
+  h += `<td class="col-total text-pag">${cellHtml((showReal ? totPagReal : 0) + (showPrev ? totPagPrev : 0))}</td></tr>`;
+
+  // ── SALDO DO PERÍODO ──
+  const saldoPeriodo = [];
+  for (let i = 0; i < n; i++) {
+    const recT = (showReal ? (summary.recv_real[i] || 0) : 0) + (showPrev ? (summary.recv_prev[i] || 0) : 0);
+    const pagT = (showReal ? (summary.pag_real[i] || 0) : 0) + (showPrev ? (summary.pag_prev[i] || 0) : 0);
+    saldoPeriodo.push(recT - pagT);
+  }
+  const totSaldo = saldoPeriodo.reduce((a, b) => a + b, 0);
+
+  h += `<tr class="row-saldo" style="background:${totSaldo >= 0 ? 'var(--saldo-pos)' : 'var(--saldo-neg)'};border-top:2px solid #94a3b8">
+    <td class="col-conta" style="background:${totSaldo >= 0 ? 'var(--saldo-pos)' : 'var(--saldo-neg)'}">SALDO DO PERÍODO</td>
+    <td class="col-tipo" style="background:${totSaldo >= 0 ? 'var(--saldo-pos)' : 'var(--saldo-neg)'}"></td>`;
+  for (let i = 0; i < n; i++) {
+    h += `<td class="${tdClass(i)}">${cellHtml(saldoPeriodo[i] || null)}</td>`;
+  }
+  h += `<td class="col-total" style="background:${totSaldo >= 0 ? '#a7f3d0' : '#fca5a5'}">${cellHtml(totSaldo)}</td></tr>`;
+
+  // ── SALDO ACUMULADO (only if available) ──
+  if (summary.saldo_acum) {
+    h += `<tr class="row-saldo" style="background:var(--acum);border-top:1px solid #93c5fd">
+      <td class="col-conta" style="background:var(--acum)">SALDO ACUMULADO</td>
+      <td class="col-tipo" style="background:var(--acum)"></td>`;
+    for (let i = 0; i < n; i++) {
+      h += `<td class="${tdClass(i)}">${cellHtml(summary.saldo_acum[i] || null)}</td>`;
+    }
+    const lastAcum = summary.saldo_acum[summary.saldo_acum.length - 1] || 0;
+    h += `<td class="col-total" style="background:#bfdbfe">${cellHtml(lastAcum)}</td></tr>`;
+  }
+
+  h += '</tbody></table>';
+  return h;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Daily Flow
+═══════════════════════════════════════════════════════════ */
+async function loadDailyFlow() {
+  const { project, month } = getFilters();
+  const wrap = document.getElementById('daily-wrap');
+  wrap.innerHTML = '<div class="loading"><span class="spinner-border spinner-border-sm me-2"></span>Carregando…</div>';
+
+  const res = await fetch(`/api/daily-flow?month=${month}&project=${encodeURIComponent(project)}`);
+  const d = await res.json();
+
+  const colHeaders = d.days.map(day => {
+    const [y, m] = month.split('-');
+    const date = new Date(+y, +m - 1, day);
+    const dow = ['D','S','T','Q','Q','S','S'][date.getDay()];
+    return `${String(day).padStart(2, '0')}<br><small style="opacity:.6">${dow}</small>`;
+  });
+
+  // todayCol: match by day number position in d.days
+  const todayColHtml = d.today_day
+    ? colHeaders[d.days.indexOf(d.today_day)]
+    : null;
+
+  wrap.innerHTML = buildFlowTable(colHeaders, d.recv, d.pag, d.summary, todayColHtml);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Monthly Flow
+═══════════════════════════════════════════════════════════ */
+async function loadMonthlyFlow() {
+  const { project, year } = getFilters();
+  const wrap = document.getElementById('monthly-wrap');
+  wrap.innerHTML = '<div class="loading"><span class="spinner-border spinner-border-sm me-2"></span>Carregando…</div>';
+
+  const res = await fetch(`/api/monthly-flow?project=${encodeURIComponent(project)}&year=${year}`);
+  const d = await res.json();
+
+  const colHeaders = d.months.map(monthLabel);
+
+  // Highlight current month
+  const today = new Date();
+  const curMonth = monthLabel(`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`);
+
+  wrap.innerHTML = buildFlowTable(colHeaders, d.recv, d.pag, d.summary, curMonth);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Reload
+═══════════════════════════════════════════════════════════ */
+async function reloadData() {
+  const btn = document.querySelector('.btn-reload');
+  btn.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i> Carregando…';
+  btn.disabled = true;
+  await fetch('/api/reload', { method: 'POST' });
+  await onFiltersChange();
+  setUpdateTime();
+  btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Recarregar';
+  btn.disabled = false;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Bootstrap
+═══════════════════════════════════════════════════════════ */
+window.addEventListener('load', init);
+</script>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: spin .6s linear infinite; }
+</style>
+
+</body>
+</html>
