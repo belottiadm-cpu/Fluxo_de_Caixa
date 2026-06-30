@@ -707,7 +707,7 @@ function importExcel(input){
 
       // Envia para o Supabase
       show('Enviando para o banco de dados...', 75);
-      try { await sbUpload(RAW); } catch(eu){ show('Supabase: '+eu.message, 100); }
+      try { await sbUpload(RAW); } catch(eu){ console.error('sbUpload falhou:', eu); alert('Erro ao salvar no Supabase:\n\n' + eu.message); show('Erro ao salvar no banco', 100); hide(); return; }
 
       // Limpa e re-inicializa todos os selects
       ['f-mes','f-proj','f-conta','fr-proj','fr-conta','fr-cli','fp-proj','fp-conta','fp-cli'].forEach(id => {
@@ -966,14 +966,29 @@ async function sbFetch(){
 async function sbUpload(rawRows){
   sbMsg('Limpando dados antigos...');
   const tr=await fetch(SB_URL+'/rest/v1/rpc/truncate_lancamentos',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},SB_HDR),body:'{}'});
-  if(!tr.ok) throw new Error('Falha ao limpar tabela');
-  const db=rawRows.map(function(r){return{origem:r[0],vencimento:r[1]||null,data_efetiva:(r[3]==='LQ'&&r[7])?r[7]:(r[1]||null),valor:r[2],situacao:r[3],conta_financeira:r[4]||null,projeto:r[5]||null,fornecedor_cliente:r[6]||null,ult_pagto:r[7]||null,cod_prj:r[8]||null,data_entrada:r[9]||null};});
+  if(!tr.ok){const tb=await tr.text();throw new Error('Falha ao limpar (HTTP '+tr.status+'): '+tb);}
+  const db=rawRows.map(function(r){
+    return{
+      origem:r[0]||'R',
+      vencimento:r[1]||null,
+      data_efetiva:(r[3]==='LQ'&&r[7])?r[7]:(r[1]||null),
+      valor:(isNaN(r[2])||r[2]===null)?0:r[2],
+      situacao:r[3]||'AB',
+      conta_financeira:r[4]||null,
+      projeto:r[5]||null,
+      fornecedor_cliente:r[6]||null,
+      ult_pagto:r[7]||null,
+      cod_prj:(r[8]&&!isNaN(r[8]))?Number(r[8]):null,
+      data_entrada:r[9]||null
+    };
+  });
   const BATCH=500,total=db.length;
   for(let i=0;i<db.length;i+=BATCH){
     sbMsg('Enviando '+(i+1)+'-'+Math.min(i+BATCH,total)+' de '+total+'...');
     const r=await fetch(SB_URL+'/rest/v1/lancamentos',{method:'POST',headers:Object.assign({'Content-Type':'application/json','Prefer':'return=minimal'},SB_HDR),body:JSON.stringify(db.slice(i,i+BATCH))});
-    if(!r.ok) throw new Error('Falha lote '+(Math.floor(i/BATCH)+1));
+    if(!r.ok){const rb=await r.text();console.error('SB 400 lote '+(Math.floor(i/BATCH)+1)+':',rb);throw new Error('HTTP '+r.status+' no lote '+(Math.floor(i/BATCH)+1)+':\n'+rb);}
   }
+  sbMsg('Salvo! '+total+' registros.');
 }
 
 function sbMsg(txt){var el=document.getElementById('sb-msg');if(el)el.textContent=txt;}
