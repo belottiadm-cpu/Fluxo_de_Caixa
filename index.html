@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fluxo de Caixa â€“ PALLADIUM</title>
+<title>Fluxo de Caixa – PALLADIUM</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -91,7 +91,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
 <div id="sb-loading">
   <div style="font-size:1.4rem;font-weight:700;color:#5b8dee">Fluxo de Caixa <span style="color:#e4e6f0">PALLADIUM</span></div>
   <div class="sb-spinner"></div>
-  <p id="sb-msg">Conectando ao banco de dados…</p>
+  <p id="sb-msg">Conectando ao banco de dados�</p>
 </div>
 <div class="hdr">
   <div>
@@ -99,9 +99,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
     <div class="today-badge" id="today-lbl"></div>
   </div>
   <div class="hdr-right">
-    <span style="font-size:11px;color:var(--mut)">SituaÃ§Ãµes: <span style="color:var(--grn)">â— LQ</span> <span style="color:var(--yel)">â— AB</span></span>
-    <button class="btn-import" onclick="document.getElementById('file-input').click()">â¬† Importar Planilha</button>
-    <button class="btn-import" onclick="gerarRelatorio()" style="border-color:var(--yel);color:var(--yel)">ðŸ“„ Gerar RelatÃ³rio</button>
+    <span style="font-size:11px;color:var(--mut)">Situações: <span style="color:var(--grn)">● LQ</span> <span style="color:var(--yel)">● AB</span></span>
+    <button class="btn-import" onclick="document.getElementById('file-input').click()">⬆ Importar Planilha</button>
+    <button class="btn-import" onclick="gerarRelatorio()" style="border-color:var(--yel);color:var(--yel)">📄 Gerar Relatório</button>
     <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
   </div>
   <div class="import-toast" id="import-toast">
@@ -114,29 +114,29 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
 
 <!-- KPIs -->
 <div class="kpi-grid" id="kpi-grid">
-  <div class="kpi" style="--color:var(--grn)"><div class="lbl">Recebido (LQ)</div><div class="val" id="k1">â€“</div><div class="sub">realizados</div></div>
-  <div class="kpi" style="--color:var(--red)"><div class="lbl">Pago (LQ)</div><div class="val" id="k2">â€“</div><div class="sub">realizados</div></div>
-  <div class="kpi" style="--color:var(--acc)"><div class="lbl">Saldo Realizado</div><div class="val" id="k3">â€“</div><div class="sub">receber âˆ’ pagar LQ</div></div>
-  <div class="kpi" style="--color:var(--yel)"><div class="lbl">A Receber (AB)</div><div class="val" id="k4">â€“</div><div class="sub" id="k4s">â€“</div></div>
-  <div class="kpi" style="--color:var(--pur)"><div class="lbl">A Pagar (AB)</div><div class="val" id="k5">â€“</div><div class="sub" id="k5s">â€“</div></div>
-  <div class="kpi" style="--color:var(--acc)"><div class="lbl">Saldo Previsto</div><div class="val" id="k6">â€“</div><div class="sub">AB receber âˆ’ pagar</div></div>
+  <div class="kpi" style="--color:var(--grn)"><div class="lbl">Recebido (LQ)</div><div class="val" id="k1">–</div><div class="sub">realizados</div></div>
+  <div class="kpi" style="--color:var(--red)"><div class="lbl">Pago (LQ)</div><div class="val" id="k2">–</div><div class="sub">realizados</div></div>
+  <div class="kpi" style="--color:var(--acc)"><div class="lbl">Saldo Realizado</div><div class="val" id="k3">–</div><div class="sub">receber − pagar LQ</div></div>
+  <div class="kpi" style="--color:var(--yel)"><div class="lbl">A Receber (AB)</div><div class="val" id="k4">–</div><div class="sub" id="k4s">–</div></div>
+  <div class="kpi" style="--color:var(--pur)"><div class="lbl">A Pagar (AB)</div><div class="val" id="k5">–</div><div class="sub" id="k5s">–</div></div>
+  <div class="kpi" style="--color:var(--acc)"><div class="lbl">Saldo Previsto</div><div class="val" id="k6">–</div><div class="sub">AB receber − pagar</div></div>
 </div>
 
 <!-- FILTERS -->
 <div class="filters">
   <div class="ftitle">Filtros</div>
   <div class="frow">
-    <div class="fg"><label>MÃªs</label>
+    <div class="fg"><label>Mês</label>
       <select id="f-mes" onchange="applyAll()"><option value="">Todos os meses</option></select></div>
     <div class="fg"><label>Projeto</label>
       <select id="f-proj" onchange="applyAll()"><option value="">Todos os projetos</option></select></div>
     <div class="fg"><label>Conta Financeira</label>
       <select id="f-conta" onchange="applyAll()"><option value="">Todas as contas</option></select></div>
-    <div class="fg"><label>SituaÃ§Ã£o</label>
+    <div class="fg"><label>Situação</label>
       <select id="f-sit" onchange="applyAll()">
         <option value="">Todas</option>
-        <option value="LQ">LQ â€“ Liquidado</option>
-        <option value="AB">AB â€“ Em Aberto</option>
+        <option value="LQ">LQ – Liquidado</option>
+        <option value="AB">AB – Em Aberto</option>
       </select></div>
     <div class="fg" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="resetFilters()">Limpar</button></div>
   </div>
@@ -149,14 +149,14 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
     <canvas id="ch-mensal" height="160"></canvas>
   </div>
   <div class="card">
-    <h3>Saldo Mensal LÃ­quido <span class="sub">(receber âˆ’ pagar)</span></h3>
+    <h3>Saldo Mensal Líquido <span class="sub">(receber − pagar)</span></h3>
     <canvas id="ch-saldo" height="160"></canvas>
   </div>
 </div>
 
 <!-- TABS -->
 <div class="tabs">
-  <div class="tab active" id="tab-diario" onclick="switchTab('diario')">Fluxo DiÃ¡rio</div>
+  <div class="tab active" id="tab-diario" onclick="switchTab('diario')">Fluxo Diário</div>
   <div class="tab" id="tab-mensal" onclick="switchTab('mensal')">Fluxo Mensal</div>
   <div class="tab" id="tab-receber" onclick="switchTab('receber')" style="color:var(--grn)">Contas a Receber</div>
   <div class="tab" id="tab-pagar" onclick="switchTab('pagar')" style="color:var(--red)">Contas a Pagar</div>
@@ -278,14 +278,14 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
 </div>
 
 <script>
-// â”€â”€ RAW DATA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── RAW DATA ──────────────────────────────────────────────────────────────
 // [tipo, vencimento, valor, sit, conta, proj_nome, cliente, ult_pagto, cod_prj, data_entrada]
 // LQ usa r[7] (ult_pagto) como data efetiva; AB usa r[1] (vencimento)
 const RAW = [];
 
 const TODAY = '2026-06-30';
-const fmtBRL = v => v===0?'â€“':'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtK   = v => v===0?'R$ 0':(v>=0?'':'âˆ’')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtBRL = v => v===0?'–':'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK   = v => v===0?'R$ 0':(v>=0?'':'−')+'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 const monthName = m => {const[y,mo]=m.split('-');const ns=['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];return ns[+mo]+'/'+y.slice(2);};
 const dayFmt = d => d.slice(8);
 
@@ -325,7 +325,7 @@ function resetFilters(){
   applyAll();
 }
 
-// â”€â”€ KPIs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── KPIs ─────────────────────────────────────────────────────────────────
 function updateKPIs(data){
   const lqR=data.filter(r=>r[0]==='R'&&r[3]==='LQ').reduce((s,r)=>s+r[2],0);
   const lqP=data.filter(r=>r[0]==='P'&&r[3]==='LQ').reduce((s,r)=>s+r[2],0);
@@ -344,7 +344,7 @@ function updateKPIs(data){
   set('k6',saldoAB,saldoAB>=0?'var(--grn)':'var(--red)');
 }
 
-// â”€â”€ CHARTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CHARTS ────────────────────────────────────────────────────────────────
 let chMensal, chSaldo;
 function updateCharts(data){
   const map={};
@@ -374,17 +374,17 @@ function updateCharts(data){
   }]},options:{...def,plugins:{...def.plugins,legend:{display:false}}}});
 }
 
-// â”€â”€ MATRIX HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── MATRIX HELPERS ────────────────────────────────────────────────────────
 function cellHtml(lqR,lqP,abR,abP){
   const parts=[];
   if(lqR) parts.push('<span class="lq-val">+'+fmtBRL(lqR)+'</span>');
-  if(lqP) parts.push('<span style="color:var(--red)">âˆ’'+fmtBRL(lqP)+'</span>');
+  if(lqP) parts.push('<span style="color:var(--red)">−'+fmtBRL(lqP)+'</span>');
   if(abR) parts.push('<span class="ab-val">[+'+fmtBRL(abR)+']</span>');
-  if(abP) parts.push('<span style="color:var(--pur)">[âˆ’'+fmtBRL(abP)+']</span>');
-  return parts.length?parts.join('<br>'):'<span class="zero">â€“</span>';
+  if(abP) parts.push('<span style="color:var(--pur)">[−'+fmtBRL(abP)+']</span>');
+  return parts.length?parts.join('<br>'):'<span class="zero">–</span>';
 }
 
-// â”€â”€ MATRIX BUILDER (shared) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── MATRIX BUILDER (shared) ───────────────────────────────────────────────
 function buildMatrix(tblId, keys, keyFn, labelFn, data){
   const contaR=new Set(), contaP=new Set();
   data.forEach(r=>{ if(!r[4]) return; r[0]==='R'?contaR.add(r[4]):contaP.add(r[4]); });
@@ -424,18 +424,18 @@ function buildMatrix(tblId, keys, keyFn, labelFn, data){
     return r+`<td style="text-align:right">${cellHtml(gtot.lqR,gtot.lqP,gtot.abR,gtot.abP)}</td></tr>`;
   };
   const saldoRow=(tot)=>{
-    let r=`<tr class="total-row" style="border-top:2px solid var(--acc)"><td style="color:var(--acc)">SALDO LÃQUIDO</td>`;
+    let r=`<tr class="total-row" style="border-top:2px solid var(--acc)"><td style="color:var(--acc)">SALDO LÍQUIDO</td>`;
     let gs=0;
-    keys.forEach(k=>{const s=(tot[k].lqR-tot[k].lqP)+(tot[k].abR-tot[k].abP);gs+=s;const cls=s>0?'saldo-pos':s<0?'saldo-neg':'zero';r+=`<td style="text-align:right"><span class="${cls}">${s===0?'â€“':((s>0?'+':'')+' R$ '+Math.abs(s).toLocaleString('pt-BR',{maximumFractionDigits:0}))}</span></td>`;});
+    keys.forEach(k=>{const s=(tot[k].lqR-tot[k].lqP)+(tot[k].abR-tot[k].abP);gs+=s;const cls=s>0?'saldo-pos':s<0?'saldo-neg':'zero';r+=`<td style="text-align:right"><span class="${cls}">${s===0?'–':((s>0?'+':'')+' R$ '+Math.abs(s).toLocaleString('pt-BR',{maximumFractionDigits:0}))}</span></td>`;});
     const cls=gs>0?'saldo-pos':gs<0?'saldo-neg':'zero';
-    return r+`<td style="text-align:right"><span class="${cls}">${gs===0?'â€“':((gs>0?'+':'')+' R$ '+Math.abs(gs).toLocaleString('pt-BR',{maximumFractionDigits:0}))}</span></td></tr>`;
+    return r+`<td style="text-align:right"><span class="${cls}">${gs===0?'–':((gs>0?'+':'')+' R$ '+Math.abs(gs).toLocaleString('pt-BR',{maximumFractionDigits:0}))}</span></td></tr>`;
   };
   const secHdr=(icon,label,color)=>`<tr class="sec-hdr"><td colspan="${ncols}" style="color:${color}">${icon} ${label}</td></tr>`;
   let body='';
-  body+=secHdr('â–²','RECEITAS','var(--grn)');
+  body+=secHdr('▲','RECEITAS','var(--grn)');
   recContas.forEach(c=>{body+=rowHtml(c);});
   body+=subtotalRow('SUBTOTAL RECEITAS',keyTotR,'var(--grn)');
-  body+=secHdr('â–¼','DESPESAS','var(--red)');
+  body+=secHdr('▼','DESPESAS','var(--red)');
   despContas.forEach(c=>{body+=rowHtml(c);});
   body+=subtotalRow('SUBTOTAL DESPESAS',keyTotP,'var(--red)');
   body+=saldoRow(keyTotAll);
@@ -455,7 +455,7 @@ function buildMensal(data){
   buildMatrix('tbl-mensal',months,r=>effDate(r).slice(0,7),m=>monthName(m),mData);
 }
 
-// â”€â”€ TABS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── TABS ─────────────────────────────────────────────────────────────────
 let activeTab='diario';
 const ALL_TABS=['diario','mensal','receber','pagar'];
 function switchTab(t){
@@ -470,11 +470,11 @@ function switchTab(t){
   else applyAll();
 }
 
-// â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-function dateFmt(iso){return iso?iso.split('-').reverse().join('/'):'â€“';}
+// ── HELPERS ──────────────────────────────────────────────────────────────
+function dateFmt(iso){return iso?iso.split('-').reverse().join('/'):'–';}
 function fmtBR(v){return'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-// â”€â”€ CLIENT GROUPING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CLIENT GROUPING ──────────────────────────────────────────────────────
 function buildClientSummary(rows, containerId, tipo, today){
   const map={};
   rows.forEach(r=>{
@@ -491,7 +491,7 @@ function buildClientSummary(rows, containerId, tipo, today){
     <div style="overflow-x:auto"><table class="mtable" style="min-width:600px">
       <thead><tr>
         <th style="text-align:left;min-width:260px">${label}</th>
-        <th style="text-align:center">TÃ­tulos</th>
+        <th style="text-align:center">Títulos</th>
         <th style="text-align:right;color:var(--red)">Vencido</th>
         <th style="text-align:right;color:var(--acc)">A Vencer</th>
         <th style="text-align:right">Total</th>
@@ -500,22 +500,22 @@ function buildClientSummary(rows, containerId, tipo, today){
     html+=`<tr>
       <td>${cli}</td>
       <td style="text-align:center">${d.count}</td>
-      <td style="text-align:right;color:${d.vencido>0?'var(--red)':'var(--mut)'}">${d.vencido>0?fmtBR(d.vencido):'â€“'}</td>
-      <td style="text-align:right;color:${d.avencer>0?'var(--acc)':'var(--mut)'}">${d.avencer>0?fmtBR(d.avencer):'â€“'}</td>
+      <td style="text-align:right;color:${d.vencido>0?'var(--red)':'var(--mut)'}">${d.vencido>0?fmtBR(d.vencido):'–'}</td>
+      <td style="text-align:right;color:${d.avencer>0?'var(--acc)':'var(--mut)'}">${d.avencer>0?fmtBR(d.avencer):'–'}</td>
       <td style="text-align:right;font-weight:700;color:${totColor}">${fmtBR(d.total)}</td>
     </tr>`;
   });
   const gt=sorted.reduce((a,[,d])=>{a.total+=d.total;a.vencido+=d.vencido;a.avencer+=d.avencer;a.count+=d.count;return a;},{total:0,vencido:0,avencer:0,count:0});
   html+=`</tbody><tfoot><tr class="total-row">
     <td>TOTAL</td><td style="text-align:center">${gt.count}</td>
-    <td style="text-align:right;color:var(--red)">${gt.vencido>0?fmtBR(gt.vencido):'â€“'}</td>
-    <td style="text-align:right;color:var(--acc)">${gt.avencer>0?fmtBR(gt.avencer):'â€“'}</td>
+    <td style="text-align:right;color:var(--red)">${gt.vencido>0?fmtBR(gt.vencido):'–'}</td>
+    <td style="text-align:right;color:var(--acc)">${gt.avencer>0?fmtBR(gt.avencer):'–'}</td>
     <td style="text-align:right;color:${totColor}">${fmtBR(gt.total)}</td>
   </tr></tfoot></table></div></div>`;
   document.getElementById(containerId).innerHTML=html;
 }
 
-// â”€â”€ CONTAS A RECEBER EM ABERTO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CONTAS A RECEBER EM ABERTO ────────────────────────────────────────────
 function buildReceber(){
   const today=TODAY;
   const status=document.getElementById('fr-status').value;
@@ -532,7 +532,7 @@ function buildReceber(){
   const total=rows.reduce((s,r)=>s+r[2],0);
   const vencidos=rows.filter(r=>r[1]<today).reduce((s,r)=>s+r[2],0);
   document.getElementById('rec-summary').innerHTML=
-    `<span style="color:var(--mut)">${rows.length} tÃ­tulos</span> &nbsp;|&nbsp; `+
+    `<span style="color:var(--mut)">${rows.length} títulos</span> &nbsp;|&nbsp; `+
     `<span style="color:var(--red)">Vencido: ${fmtBR(vencidos)}</span> &nbsp;|&nbsp; `+
     `<span style="color:var(--grn)">Total AB: ${fmtBR(total)}</span>`;
   const tbody=document.getElementById('tbl-receber').querySelector('tbody');
@@ -542,13 +542,13 @@ function buildReceber(){
     const venc=r[1]<today;
     const dias=Math.round((new Date(today)-new Date(r[1]))/86400000);
     const badge=venc?`<span style="background:#e0525220;color:var(--red);padding:2px 7px;border-radius:10px;font-size:10px">Vencido ${dias}d</span>`:`<span style="background:#3ecf8e20;color:var(--grn);padding:2px 7px;border-radius:10px;font-size:10px">A vencer</span>`;
-    return `<tr><td>${r[6]||'â€“'}</td><td>${r[5]||'â€“'}</td><td>${r[4]||'â€“'}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:right;color:var(--grn);font-weight:600">${fmtBR(r[2])}</td><td style="text-align:center">${badge}</td></tr>`;
+    return `<tr><td>${r[6]||'–'}</td><td>${r[5]||'–'}</td><td>${r[4]||'–'}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:right;color:var(--grn);font-weight:600">${fmtBR(r[2])}</td><td style="text-align:center">${badge}</td></tr>`;
   }).join('');
   tfoot.innerHTML=`<tr class="total-row"><td colspan="4" style="text-align:right">TOTAL</td><td style="text-align:right;color:var(--grn)">${fmtBR(total)}</td><td></td></tr>`;
   buildClientSummary(rows,'rec-clients','R',today);
 }
 
-// â”€â”€ CONTAS A PAGAR EM ABERTO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CONTAS A PAGAR EM ABERTO ──────────────────────────────────────────────
 function buildPagar(){
   const today=TODAY;
   const status=document.getElementById('fp-status').value;
@@ -565,7 +565,7 @@ function buildPagar(){
   const total=rows.reduce((s,r)=>s+r[2],0);
   const vencidos=rows.filter(r=>r[1]<today).reduce((s,r)=>s+r[2],0);
   document.getElementById('pag-summary').innerHTML=
-    `<span style="color:var(--mut)">${rows.length} tÃ­tulos</span> &nbsp;|&nbsp; `+
+    `<span style="color:var(--mut)">${rows.length} títulos</span> &nbsp;|&nbsp; `+
     `<span style="color:var(--red)">Vencido: ${fmtBR(vencidos)}</span> &nbsp;|&nbsp; `+
     `<span style="color:var(--red)">Total AB: ${fmtBR(total)}</span>`;
   const tbody=document.getElementById('tbl-pagar').querySelector('tbody');
@@ -575,13 +575,13 @@ function buildPagar(){
     const venc=r[1]<today;
     const dias=Math.round((new Date(today)-new Date(r[1]))/86400000);
     const badge=venc?`<span style="background:#e0525220;color:var(--red);padding:2px 7px;border-radius:10px;font-size:10px">Vencido ${dias}d</span>`:`<span style="background:#5b8dee20;color:var(--acc);padding:2px 7px;border-radius:10px;font-size:10px">A vencer</span>`;
-    return `<tr><td>${r[6]||'â€“'}</td><td>${r[5]||'â€“'}</td><td>${r[4]||'â€“'}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:right;color:var(--red);font-weight:600">${fmtBR(r[2])}</td><td style="text-align:center">${badge}</td></tr>`;
+    return `<tr><td>${r[6]||'–'}</td><td>${r[5]||'–'}</td><td>${r[4]||'–'}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:right;color:var(--red);font-weight:600">${fmtBR(r[2])}</td><td style="text-align:center">${badge}</td></tr>`;
   }).join('');
   tfoot.innerHTML=`<tr class="total-row"><td colspan="4" style="text-align:right">TOTAL</td><td style="text-align:right;color:var(--red)">${fmtBR(total)}</td><td></td></tr>`;
   buildClientSummary(rows,'pag-clients','P',today);
 }
 
-// â”€â”€ INIT SELECTS FOR RECEBER/PAGAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INIT SELECTS FOR RECEBER/PAGAR ───────────────────────────────────────
 function initRecPagSelects(){
   const projs=[...new Set(RAW.map(r=>r[5]).filter(Boolean))].sort();
   const contasR=[...new Set(RAW.filter(r=>r[0]==='R').map(r=>r[4]).filter(Boolean))].sort();
@@ -604,7 +604,7 @@ function applyAll(){
 }
 
 
-// â”€â”€ IMPORT EXCEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── IMPORT EXCEL ──────────────────────────────────────────────────────────
 function importExcel(input){
   const file = input.files[0];
   if(!file) return;
@@ -622,15 +622,15 @@ function importExcel(input){
   reader.onload = async e => {
     try {
       show('Processando planilha...', 30);
-      // cellDates:true â†’ SheetJS entrega Date objects para cÃ©lulas de data
+      // cellDates:true → SheetJS entrega Date objects para células de data
       const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      // raw:true para receber Date objects (nÃ£o strings)
+      // raw:true para receber Date objects (não strings)
       const data = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
 
       show('Extraindo dados...', 55);
 
-      // Helper: converte qualquer representaÃ§Ã£o de data â†’ 'YYYY-MM-DD'
+      // Helper: converte qualquer representação de data → 'YYYY-MM-DD'
       function toISO(v){
         if(!v) return '';
         if(v instanceof Date){
@@ -639,7 +639,7 @@ function importExcel(input){
           return `${y}-${m}-${d}`;
         }
         if(typeof v === 'number' && v > 30000){
-          // Serial Excel â†’ Date
+          // Serial Excel → Date
           const ms = Math.round((v - 25569) * 86400 * 1000);
           const dt = new Date(ms);
           const y = dt.getUTCFullYear(), m = String(dt.getUTCMonth()+1).padStart(2,'0'), d = String(dt.getUTCDate()).padStart(2,'0');
@@ -696,12 +696,12 @@ function importExcel(input){
       }
 
       if(rows.length === 0){
-        show('âŒ Nenhum dado vÃ¡lido encontrado.', 100); hide(); return;
+        show('❌ Nenhum dado válido encontrado.', 100); hide(); return;
       }
 
       show('Atualizando dashboard...', 80);
 
-      // Substitui RAW in-place (mantÃ©m referÃªncia)
+      // Substitui RAW in-place (mantém referência)
       RAW.length = 0;
       rows.forEach(r => RAW.push(r));
 
@@ -721,30 +721,30 @@ function importExcel(input){
       if(activeTab === 'receber') buildReceber();
       if(activeTab === 'pagar')   buildPagar();
 
-      show(`âœ… ${rows.length} registros importados (${skipped} ignorados)`, 100);
+      show(`✅ ${rows.length} registros importados (${skipped} ignorados)`, 100);
       hide();
 
     } catch(err){
-      show('âŒ Erro: ' + err.message, 100); hide();
+      show('❌ Erro: ' + err.message, 100); hide();
     }
   };
-  reader.onerror = () => { show('âŒ Falha ao ler o arquivo.', 100); hide(); };
+  reader.onerror = () => { show('❌ Falha ao ler o arquivo.', 100); hide(); };
   reader.readAsArrayBuffer(file);
 }
 
 
-// â”€â”€ GERAR RELATÃ“RIO PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── GERAR RELATÓRIO PDF ────────────────────────────────────────────────────
 function gerarRelatorio(){
-  // Filter: Data Entrada >= 2026-01-01 and AB only no â€” all sit, by project
+  // Filter: Data Entrada >= 2026-01-01 and AB only no — all sit, by project
   const CUTOFF = '2026-01-01';
   const CONTAS_VENDA = new Set([
     'Venda Sistema Solar Auto Consumo',
-    'Venda Sistema Solar ComercializaÃ§Ã£o',
-    'Venda Sistema Solar ExpansÃ£o Auto Consumo',
-    'Venda Sistema Solar ExpansÃ£o ComercializaÃ§Ã£o'
+    'Venda Sistema Solar Comercialização',
+    'Venda Sistema Solar Expansão Auto Consumo',
+    'Venda Sistema Solar Expansão Comercialização'
   ]);
 
-  // Passo 1: identificar CÃ³d PRJ elegÃ­veis (tÃªm lanÃ§amento de venda solar com Data Entrada >= 2026)
+  // Passo 1: identificar Cód PRJ elegíveis (têm lançamento de venda solar com Data Entrada >= 2026)
   const codElegiveis = new Set();
   RAW.forEach(r => {
     const de = r[9] || '';
@@ -753,7 +753,7 @@ function gerarRelatorio(){
     }
   });
 
-  // Passo 2: agregar TODOS os lanÃ§amentos desses projetos (todas as contas)
+  // Passo 2: agregar TODOS os lançamentos desses projetos (todas as contas)
   const prjs = {};
   RAW.forEach(r => {
     if(!codElegiveis.has(r[8])) return;
@@ -787,7 +787,7 @@ function gerarRelatorio(){
 
   // Generate HTML report
   const fmt = v => 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const fmtDate = iso => iso ? iso.split('-').reverse().join('/') : 'â€“';
+  const fmtDate = iso => iso ? iso.split('-').reverse().join('/') : '–';
   const today = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   let totalRecLQ=0,totalRecAB=0,totalPagLQ=0,totalPagAB=0;
@@ -798,7 +798,7 @@ function gerarRelatorio(){
 
   let html = `<!DOCTYPE html><html lang="pt-BR"><head>
   <meta charset="UTF-8">
-  <title>RelatÃ³rio por Projeto â€“ PALLADIUM</title>
+  <title>Relatório por Projeto – PALLADIUM</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',Arial,sans-serif;font-size:11px;color:#1a1a2e;background:#fff;padding:20px}
@@ -839,22 +839,22 @@ function gerarRelatorio(){
     }
   </style>
 </head><body>
-  <h1>RelatÃ³rio de Projetos â€“ PALLADIUM</h1>
-  <div class="sub">Gerado em ${today} &nbsp;Â·&nbsp; Data Entrada a partir de 01/01/2026 &nbsp;Â·&nbsp; ${list.length} projetos</div>
+  <h1>Relatório de Projetos – PALLADIUM</h1>
+  <div class="sub">Gerado em ${today} &nbsp;·&nbsp; Data Entrada a partir de 01/01/2026 &nbsp;·&nbsp; ${list.length} projetos</div>
 
-  <button class="no-print" onclick="window.print()" style="margin-bottom:16px;background:#2c3e6b;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">ðŸ–¨ Imprimir / Salvar PDF</button>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:16px;background:#2c3e6b;color:#fff;border:none;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">🖨 Imprimir / Salvar PDF</button>
 
   <!-- ALERTA QUEIMANDO CAIXA -->
   ${queimando.length > 0 ? `<div class="alert-box">
-    <h3>âš  ${queimando.length} projeto(s) queimando caixa â€” jÃ¡ pagamos mais do que recebemos (LQ)</h3>
-    <div style="font-size:10px;color:#555;margin-top:2px">${queimando.map(p=>`[${p.cod}] ${p.nome}`).join('  Â·  ')}</div>
+    <h3>⚠ ${queimando.length} projeto(s) queimando caixa — já pagamos mais do que recebemos (LQ)</h3>
+    <div style="font-size:10px;color:#555;margin-top:2px">${queimando.map(p=>`[${p.cod}] ${p.nome}`).join('  ·  ')}</div>
   </div>` : ''}
 
   <!-- RESUMO EXECUTIVO -->
   <div class="section-title">Resumo Executivo por Projeto</div>
   <table class="summary-table">
     <thead><tr>
-      <th>CÃ³d</th><th>Projeto</th><th>Status</th>
+      <th>Cód</th><th>Projeto</th><th>Status</th>
       <th class="num">Recebido (LQ)</th><th class="num">A Receber (AB)</th>
       <th class="num">Pago (LQ)</th><th class="num">A Pagar (AB)</th>
       <th class="num">Saldo Total</th>
@@ -865,13 +865,13 @@ function gerarRelatorio(){
     const saldo = (p.recLQ+p.recAB) - (p.pagLQ+p.pagAB);
     const burn  = p.pagLQ > p.recLQ;
     html += `<tr class="${burn?'burn':'ok'}">
-      <td>${p.cod||'â€“'}</td>
+      <td>${p.cod||'–'}</td>
       <td>${p.nome}</td>
-      <td><span class="${burn?'burn':'ok'}-badge">${burn?'âš  QUEIMANDO':'âœ“ OK'}</span></td>
+      <td><span class="${burn?'burn':'ok'}-badge">${burn?'⚠ QUEIMANDO':'✓ OK'}</span></td>
       <td class="num pos">${fmt(p.recLQ)}</td>
-      <td class="num">${p.recAB>0?fmt(p.recAB):'â€“'}</td>
+      <td class="num">${p.recAB>0?fmt(p.recAB):'–'}</td>
       <td class="num neg">${fmt(p.pagLQ)}</td>
-      <td class="num">${p.pagAB>0?fmt(p.pagAB):'â€“'}</td>
+      <td class="num">${p.pagAB>0?fmt(p.pagAB):'–'}</td>
       <td class="num ${saldo>=0?'pos':'neg'}">${fmt(saldo)}</td>
     </tr>`;
   });
@@ -897,8 +897,8 @@ function gerarRelatorio(){
 
     html += `${idx>0 && idx%3===0 ? '<div class="page-break"></div>' : ''}
     <div class="proj-header">
-      <span>[${p.cod||'â€“'}] ${p.nome}</span>
-      <span class="${burn?'burn':'ok'}-lbl">${burn?'âš  QUEIMANDO CAIXA':'âœ“ SALDO POSITIVO'}</span>
+      <span>[${p.cod||'–'}] ${p.nome}</span>
+      <span class="${burn?'burn':'ok'}-lbl">${burn?'⚠ QUEIMANDO CAIXA':'✓ SALDO POSITIVO'}</span>
     </div>
     <table class="detail-table">
       <thead><tr>
@@ -911,25 +911,25 @@ function gerarRelatorio(){
     if(recRows.length){
       recRows.forEach(r => {
         html += `<tr class="rec">
-          <td>â†‘ Receber</td><td>${r[6]||'â€“'}</td><td>${r[4]||'â€“'}</td>
+          <td>↑ Receber</td><td>${r[6]||'–'}</td><td>${r[4]||'–'}</td>
           <td class="num">${fmtDate(r[1])}</td><td class="num">${fmtDate(r[7])}</td>
           <td>${r[3]}</td><td class="num">${fmt(r[2])}</td>
         </tr>`;
       });
       html += `<tr class="subtot"><td colspan="6">Subtotal Receber</td>
-        <td class="num pos">${fmt(p.recLQ)} LQ + ${p.recAB>0?fmt(p.recAB)+' AB':'â€“'}</td></tr>`;
+        <td class="num pos">${fmt(p.recLQ)} LQ + ${p.recAB>0?fmt(p.recAB)+' AB':'–'}</td></tr>`;
     }
 
     if(pagRows.length){
       pagRows.forEach(r => {
         html += `<tr class="pag">
-          <td>â†“ Pagar</td><td>${r[6]||'â€“'}</td><td>${r[4]||'â€“'}</td>
+          <td>↓ Pagar</td><td>${r[6]||'–'}</td><td>${r[4]||'–'}</td>
           <td class="num">${fmtDate(r[1])}</td><td class="num">${fmtDate(r[7])}</td>
           <td>${r[3]}</td><td class="num">${fmt(r[2])}</td>
         </tr>`;
       });
       html += `<tr class="subtot"><td colspan="6">Subtotal Pagar</td>
-        <td class="num neg">${fmt(p.pagLQ)} LQ + ${p.pagAB>0?fmt(p.pagAB)+' AB':'â€“'}</td></tr>`;
+        <td class="num neg">${fmt(p.pagLQ)} LQ + ${p.pagAB>0?fmt(p.pagAB)+' AB':'–'}</td></tr>`;
     }
 
     html += `<tr class="subtot" style="background:#e8eaf6">
@@ -945,7 +945,7 @@ function gerarRelatorio(){
   window.open(url, '_blank');
 }
 
-// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INIT ─────────────────────────────────────────────────────────────────
 document.getElementById('today-lbl').textContent='Hoje: '+new Date(TODAY).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 // SUPABASE
 const SB_URL = 'https://edxqqpwvtcejxknmmtlu.supabase.co';
