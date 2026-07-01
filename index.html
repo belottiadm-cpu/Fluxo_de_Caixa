@@ -160,6 +160,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
   <div class="tab" id="tab-mensal" onclick="switchTab('mensal')">Fluxo Mensal</div>
   <div class="tab" id="tab-receber" onclick="switchTab('receber')" style="color:var(--grn)">Contas a Receber</div>
   <div class="tab" id="tab-pagar" onclick="switchTab('pagar')" style="color:var(--red)">Contas a Pagar</div>
+  <div class="tab" id="tab-vendas" onclick="switchTab('vendas')" style="color:var(--yel)">Vendas do Mês</div>
+  <div class="tab" id="tab-concretizar" onclick="switchTab('concretizar')" style="color:var(--pur)">Vendas a Concretizar</div>
 </div>
 
 <!-- DIARIO -->
@@ -273,6 +275,99 @@ body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-ser
   </div>
 </div>
 
+<!-- VIEW: VENDAS DO MÊS (por Data Entrada) -->
+<div id="view-vendas" style="display:none">
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <div class="fg">
+      <label>Mês (Data Entrada)</label>
+      <select id="fv-mes" onchange="buildVendas()" style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--txt);padding:6px 10px;font-size:12px;outline:none;min-width:160px">
+        <option value="">Todos os meses</option>
+        <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+        <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+        <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
+        <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Ano (Data Entrada)</label>
+      <select id="fv-ano" onchange="buildVendas()" style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--txt);padding:6px 10px;font-size:12px;outline:none;min-width:120px">
+        <option value="">Todos os anos</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Conta Financeira</label>
+      <select id="fv-conta" onchange="buildVendas()" style="background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--txt);padding:6px 10px;font-size:12px;outline:none;min-width:220px">
+        <option value="">Todas as contas</option>
+      </select>
+    </div>
+    <div class="fg" style="justify-content:flex-end"><button class="btn btn-ghost" onclick="resetVendasFilters()">Limpar</button></div>
+  </div>
+
+  <div class="kpi-grid" id="kpi-grid-vendas" style="grid-template-columns:repeat(5,1fr);margin-bottom:18px">
+    <div class="kpi" style="--color:var(--acc)"><div class="lbl">Total Vendido</div><div class="val" id="kv1">–</div><div class="sub">no período filtrado</div></div>
+    <div class="kpi" style="--color:var(--yel)"><div class="lbl">Qtde. de Vendas</div><div class="val" id="kv2">–</div><div class="sub">títulos no período</div></div>
+    <div class="kpi" style="--color:var(--pur)"><div class="lbl">Ticket Médio</div><div class="val" id="kv3">–</div><div class="sub">valor médio por venda</div></div>
+    <div class="kpi" style="--color:var(--grn)"><div class="lbl">Recebido (LQ)</div><div class="val" id="kv4">–</div><div class="sub">já liquidado</div></div>
+    <div class="kpi" style="--color:var(--red)"><div class="lbl">A Receber (AB)</div><div class="val" id="kv5">–</div><div class="sub">ainda em aberto</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <h3>Vendas por Conta Financeira <span class="sub">(período filtrado)</span></h3>
+    <canvas id="ch-vendas" height="90"></canvas>
+  </div>
+
+  <div class="matrix-wrap" style="max-height:600px">
+    <table class="mtable" id="tbl-vendas">
+      <thead><tr>
+        <th style="text-align:center">Data Entrada</th>
+        <th style="min-width:200px;text-align:left">Cliente</th>
+        <th style="min-width:190px;text-align:left">Conta Financeira</th>
+        <th style="text-align:center">Vencimento</th>
+        <th style="text-align:center">Situação</th>
+        <th style="text-align:right">Valor</th>
+      </tr></thead>
+      <tbody></tbody>
+      <tfoot></tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- VIEW: VENDAS A CONCRETIZAR (clientes selecionados, saldo em aberto) -->
+<div id="view-concretizar" style="display:none">
+  <div class="card" style="margin-bottom:18px">
+    <h3>Vendas a Concretizar por Cliente <span class="sub">(saldo em aberto, AB)</span></h3>
+    <canvas id="ch-concretizar" height="90"></canvas>
+  </div>
+
+  <div class="matrix-wrap" style="margin-bottom:18px">
+    <table class="mtable" id="tbl-concretizar-resumo">
+      <thead><tr>
+        <th style="min-width:220px;text-align:left">Cliente</th>
+        <th style="text-align:center">Títulos em Aberto</th>
+        <th style="text-align:right">Total em Aberto</th>
+        <th style="min-width:280px;text-align:left">Observações</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div style="margin-bottom:14px;font-size:12px;color:var(--mut)" id="concretizar-summary"></div>
+
+  <div class="matrix-wrap" style="max-height:600px">
+    <table class="mtable" id="tbl-concretizar">
+      <thead><tr>
+        <th style="min-width:220px;text-align:left">Cliente</th>
+        <th style="min-width:190px;text-align:left">Conta Financeira</th>
+        <th style="text-align:center">Data Entrada</th>
+        <th style="text-align:center">Vencimento</th>
+        <th style="text-align:right">Valor</th>
+      </tr></thead>
+      <tbody></tbody>
+      <tfoot></tfoot>
+    </table>
+  </div>
+</div>
+
 </div>
   <div id="pag-clients" style="margin-top:18px"></div>
 </div>
@@ -345,7 +440,7 @@ function updateKPIs(data){
 }
 
 // ── CHARTS ────────────────────────────────────────────────────────────────
-let chMensal, chSaldo;
+let chMensal, chSaldo, chVendas, chConcretizar;
 function updateCharts(data){
   const map={};
   data.forEach(r=>{
@@ -457,7 +552,7 @@ function buildMensal(data){
 
 // ── TABS ─────────────────────────────────────────────────────────────────
 let activeTab='diario';
-const ALL_TABS=['diario','mensal','receber','pagar'];
+const ALL_TABS=['diario','mensal','receber','pagar','vendas','concretizar'];
 function switchTab(t){
   activeTab=t;
   ALL_TABS.forEach(id=>{
@@ -467,6 +562,8 @@ function switchTab(t){
   });
   if(t==='receber') buildReceber();
   else if(t==='pagar') buildPagar();
+  else if(t==='vendas') buildVendas();
+  else if(t==='concretizar') buildConcretizar();
   else applyAll();
 }
 
@@ -603,6 +700,204 @@ function applyAll(){
   buildMensal(data);
 }
 
+// ── VENDAS DO MÊS (por Data Entrada) ─────────────────────────────────────
+// "Venda" = todo lançamento de Contas a Receber (tipo 'R'), filtrado pela
+// Data Entrada — inclui todas as contas financeiras (Entradas Diversas também).
+function vendaRows(){
+  return RAW.filter(r=>r[0]==='R' && r[4] && r[9]);
+}
+
+function initVendasSelects(){
+  const rows=vendaRows();
+  const anos=[...new Set(rows.map(r=>r[9].slice(0,4)))].filter(Boolean).sort();
+  const contas=[...new Set(rows.map(r=>r[4]))].filter(Boolean).sort();
+  const fAno=document.getElementById('fv-ano');
+  while(fAno.options.length>1) fAno.remove(1);
+  anos.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;fAno.appendChild(o);});
+  const fConta=document.getElementById('fv-conta');
+  while(fConta.options.length>1) fConta.remove(1);
+  contas.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fConta.appendChild(o);});
+  const curYear=TODAY.slice(0,4), curMonth=TODAY.slice(5,7);
+  document.getElementById('fv-mes').value=curMonth;
+  document.getElementById('fv-ano').value=anos.includes(curYear)?curYear:'';
+}
+
+function resetVendasFilters(){
+  document.getElementById('fv-mes').value=TODAY.slice(5,7);
+  document.getElementById('fv-ano').value=TODAY.slice(0,4);
+  document.getElementById('fv-conta').value='';
+  buildVendas();
+}
+
+function buildVendas(){
+  const mes=document.getElementById('fv-mes').value;
+  const ano=document.getElementById('fv-ano').value;
+  const conta=document.getElementById('fv-conta').value;
+  let rows=vendaRows();
+  if(ano) rows=rows.filter(r=>r[9].slice(0,4)===ano);
+  if(mes) rows=rows.filter(r=>r[9].slice(5,7)===mes);
+  if(conta) rows=rows.filter(r=>r[4]===conta);
+  rows=[...rows].sort((a,b)=>b[9].localeCompare(a[9]));
+
+  const total=rows.reduce((s,r)=>s+r[2],0);
+  const qtd=rows.length;
+  const ticket=qtd?total/qtd:0;
+  const lq=rows.filter(r=>r[3]==='LQ').reduce((s,r)=>s+r[2],0);
+  const ab=rows.filter(r=>r[3]==='AB').reduce((s,r)=>s+r[2],0);
+
+  document.getElementById('kv1').textContent=fmtBR(total);
+  document.getElementById('kv2').textContent=String(qtd);
+  document.getElementById('kv3').textContent=fmtBR(ticket);
+  document.getElementById('kv4').textContent=fmtBR(lq);
+  document.getElementById('kv5').textContent=fmtBR(ab);
+
+  // Chart: vendas agrupadas por conta financeira no período filtrado
+  const byConta={};
+  rows.forEach(r=>{ byConta[r[4]]=(byConta[r[4]]||0)+r[2]; });
+  const entries=Object.entries(byConta).sort((a,b)=>b[1]-a[1]);
+  const labels=entries.map(e=>e[0]);
+  const vals=entries.map(e=>e[1]);
+  if(chVendas) chVendas.destroy();
+  chVendas=new Chart(document.getElementById('ch-vendas').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Vendas',data:vals,backgroundColor:'#f7c94855',borderColor:'#f7c948',borderWidth:1,borderRadius:3}]},
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBR(c.raw)}}},
+      scales:{
+        x:{ticks:{color:'#7b82a0',font:{size:9},callback:v=>'R$'+(Math.abs(v)>=1000?((v/1000).toFixed(0)+'k'):v)},grid:{color:'#2d3150'}},
+        y:{ticks:{color:'#7b82a0',font:{size:10}},grid:{display:false}}
+      }
+    }
+  });
+
+  const tbody=document.getElementById('tbl-vendas').querySelector('tbody');
+  const tfoot=document.getElementById('tbl-vendas').querySelector('tfoot');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mut);padding:20px">Nenhuma venda no período selecionado</td></tr>';
+    tfoot.innerHTML='';
+    return;
+  }
+  tbody.innerHTML=rows.map(r=>{
+    const sitBadge=r[3]==='LQ'
+      ? `<span style="background:#3ecf8e20;color:var(--grn);padding:2px 7px;border-radius:10px;font-size:10px">LQ</span>`
+      : `<span style="background:#f7c94820;color:var(--yel);padding:2px 7px;border-radius:10px;font-size:10px">AB</span>`;
+    return `<tr><td style="text-align:center">${dateFmt(r[9])}</td><td>${r[6]||'–'}</td><td>${r[4]||'–'}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:center">${sitBadge}</td><td style="text-align:right;color:var(--grn);font-weight:600">${fmtBR(r[2])}</td></tr>`;
+  }).join('');
+  tfoot.innerHTML=`<tr class="total-row"><td colspan="5" style="text-align:right">TOTAL</td><td style="text-align:right;color:var(--grn)">${fmtBR(total)}</td></tr>`;
+}
+
+// ── VENDAS A CONCRETIZAR (clientes selecionados, saldo em aberto) ────────
+// Lista curada de clientes; mostra apenas o que ainda está em aberto (AB),
+// ou seja, negócio ainda não concretizado/recebido.
+const CLIENTES_CONCRETIZAR = [
+  'MARINGA FUTEBOL CLUBE S A F - UC 74115790',
+  'HENRIQUE LUDWIG BUENO',
+  'SIDNEI RODRIGUES VIEIRA',
+  'JOCEMAR LUIZ LOPES',
+  'MAURICIO PODOLAN SEVERINI',
+  'VALTER LUIS BORIN',
+  'DEBORA LOPES RAMALHO'
+];
+
+async function buildConcretizar(){
+  try{ await fetchObsConcretizar(); }catch(e){ console.error('Falha ao carregar observações:', e); }
+
+  const rows=RAW.filter(r=>r[0]==='R' && r[3]==='AB' && CLIENTES_CONCRETIZAR.includes(r[6]));
+
+  const byCliente={};
+  CLIENTES_CONCRETIZAR.forEach(c=>{ byCliente[c]=0; });
+  rows.forEach(r=>{ byCliente[r[6]]+=r[2]; });
+  const labels=CLIENTES_CONCRETIZAR;
+  const vals=labels.map(c=>byCliente[c]);
+
+  if(chConcretizar) chConcretizar.destroy();
+  chConcretizar=new Chart(document.getElementById('ch-concretizar').getContext('2d'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'A Concretizar',data:vals,backgroundColor:'#a66af755',borderColor:'#a66af7',borderWidth:1,borderRadius:3}]},
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBR(c.raw)}}},
+      scales:{
+        x:{ticks:{color:'#7b82a0',font:{size:9},callback:v=>'R$'+(Math.abs(v)>=1000?((v/1000).toFixed(0)+'k'):v)},grid:{color:'#2d3150'}},
+        y:{ticks:{color:'#7b82a0',font:{size:10}},grid:{display:false}}
+      }
+    }
+  });
+
+  const total=rows.reduce((s,r)=>s+r[2],0);
+  const clientesComSaldo=labels.filter(c=>byCliente[c]>0).length;
+  document.getElementById('concretizar-summary').innerHTML=
+    `<span style="color:var(--mut)">${rows.length} títulos em aberto</span> &nbsp;|&nbsp; `+
+    `<span style="color:var(--mut)">${clientesComSaldo} de ${labels.length} clientes com saldo</span> &nbsp;|&nbsp; `+
+    `<span style="color:var(--pur);font-weight:600">Total a Concretizar: ${fmtBR(total)}</span>`;
+
+  const qtdPorCliente={};
+  CLIENTES_CONCRETIZAR.forEach(c=>{ qtdPorCliente[c]=0; });
+  rows.forEach(r=>{ qtdPorCliente[r[6]]++; });
+  renderConcretizarResumo(byCliente, qtdPorCliente);
+
+  const sorted=[...rows].sort((a,b)=>a[6].localeCompare(b[6])||a[1].localeCompare(b[1]));
+  const tbody=document.getElementById('tbl-concretizar').querySelector('tbody');
+  const tfoot=document.getElementById('tbl-concretizar').querySelector('tfoot');
+  if(!sorted.length){
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--mut);padding:20px">Nenhuma venda em aberto para esses clientes</td></tr>';
+    tfoot.innerHTML='';
+    return;
+  }
+  tbody.innerHTML=sorted.map(r=>
+    `<tr><td>${r[6]}</td><td>${r[4]||'–'}</td><td style="text-align:center">${dateFmt(r[9])}</td><td style="text-align:center">${dateFmt(r[1])}</td><td style="text-align:right;color:var(--pur);font-weight:600">${fmtBR(r[2])}</td></tr>`
+  ).join('');
+  tfoot.innerHTML=`<tr class="total-row"><td colspan="4" style="text-align:right">TOTAL</td><td style="text-align:right;color:var(--pur)">${fmtBR(total)}</td></tr>`;
+}
+
+// ── OBSERVAÇÕES POR CLIENTE (persistidas no Supabase, tabela obs_vendas_concretizar) ──
+let OBS_CONCRETIZAR={};        // cliente -> texto salvo
+
+async function fetchObsConcretizar(){
+  const res=await fetch(SB_URL+'/rest/v1/obs_vendas_concretizar?select=cliente,observacao', {headers:SB_HDR});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const rows=await res.json();
+  OBS_CONCRETIZAR={};
+  rows.forEach(r=>{ OBS_CONCRETIZAR[r.cliente]=r.observacao||''; });
+}
+
+function renderConcretizarResumo(byCliente, qtdPorCliente){
+  const tbody=document.getElementById('tbl-concretizar-resumo').querySelector('tbody');
+  tbody.innerHTML=CLIENTES_CONCRETIZAR.map((c,i)=>`<tr>
+      <td>${c}</td>
+      <td style="text-align:center">${qtdPorCliente[c]}</td>
+      <td style="text-align:right;color:var(--pur);font-weight:600">${fmtBR(byCliente[c])}</td>
+      <td><input type="text" class="obs-input" data-idx="${i}" placeholder="Escreva uma observação..." style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--txt);padding:6px 10px;font-size:12px;outline:none;transition:border-color .3s"></td>
+    </tr>`).join('');
+  tbody.querySelectorAll('.obs-input').forEach(inp=>{
+    const cliente=CLIENTES_CONCRETIZAR[Number(inp.dataset.idx)];
+    inp.value=OBS_CONCRETIZAR[cliente]||'';
+    inp.addEventListener('change', ()=>saveObsConcretizar(cliente, inp.value.trim(), inp));
+  });
+}
+
+async function saveObsConcretizar(cliente, texto, inputEl){
+  const original=OBS_CONCRETIZAR[cliente]||'';
+  if(texto===original) return;
+  try{
+    const res=await fetch(SB_URL+'/rest/v1/obs_vendas_concretizar', {
+      method:'POST',
+      headers:Object.assign({'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'}, SB_HDR),
+      body:JSON.stringify([{cliente, observacao:texto, updated_at:new Date().toISOString()}])
+    });
+    if(!res.ok){ const t=await res.text(); throw new Error('HTTP '+res.status+': '+t); }
+    OBS_CONCRETIZAR[cliente]=texto;
+    inputEl.style.borderColor='var(--grn)';
+    setTimeout(()=>{ inputEl.style.borderColor='var(--bd)'; }, 1000);
+  }catch(e){
+    alert('Erro ao salvar observação de '+cliente+':\n\n'+e.message);
+    inputEl.value=original;
+  }
+}
+
 
 // ── IMPORT EXCEL ──────────────────────────────────────────────────────────
 function importExcel(input){
@@ -710,16 +1005,19 @@ function importExcel(input){
       try { await sbUpload(RAW); } catch(eu){ console.error('sbUpload falhou:', eu); alert('Erro ao salvar no Supabase:\n\n' + eu.message); show('Erro ao salvar no banco', 100); hide(); return; }
 
       // Limpa e re-inicializa todos os selects
-      ['f-mes','f-proj','f-conta','fr-proj','fr-conta','fr-cli','fp-proj','fp-conta','fp-cli'].forEach(id => {
+      ['f-mes','f-proj','f-conta','fr-proj','fr-conta','fr-cli','fp-proj','fp-conta','fp-cli','fv-ano','fv-conta'].forEach(id => {
         const el = document.getElementById(id);
         if(el) while(el.options.length > 1) el.remove(1);
       });
       initSelects();
       initRecPagSelects();
+      initVendasSelects();
 
       applyAll();
-      if(activeTab === 'receber') buildReceber();
-      if(activeTab === 'pagar')   buildPagar();
+      if(activeTab === 'receber')     buildReceber();
+      if(activeTab === 'pagar')       buildPagar();
+      if(activeTab === 'vendas')      buildVendas();
+      if(activeTab === 'concretizar') buildConcretizar();
 
       show(`✅ ${rows.length} registros importados (${skipped} ignorados)`, 100);
       hide();
@@ -1005,7 +1303,7 @@ function sbHide(){document.getElementById('sb-loading').classList.add('hide');}
     if(rows.length===0){sbHide();return;}
     RAW.length=0;
     rows.forEach(function(r){RAW.push([r.origem,r.vencimento||'',parseFloat(r.valor)||0,r.situacao||'AB',r.conta_financeira||'',r.projeto||'',r.fornecedor_cliente||'',r.ult_pagto||(r.situacao==='LQ'?r.data_efetiva:null)||'',r.cod_prj||0,r.data_entrada||'']);});
-    initSelects(); initRecPagSelects(); applyAll();
+    initSelects(); initRecPagSelects(); initVendasSelects(); applyAll();
     sbHide();
   }catch(e){sbMsg('Erro: '+e.message);setTimeout(sbHide,3000);}
 })();
